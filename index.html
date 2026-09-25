@@ -7,7 +7,7 @@
 <meta name="description" content="Gom-biisi : traitement de texte léger avec interface en mooré (Burkina Faso).">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Andika:ital,wght@0,400;0,700;1,400;1,700&family=Charis+SIL:ital,wght@0,400;0,700;1,400;1,700&family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap">
 <style>
 :root{
   --chrome:#2b579a; --chrome-2:#244b85; --chrome-ink:#ffffff; --chrome-ink-2:#dce6f4;
@@ -22,7 +22,7 @@
   --dialog:#ffffff; --dialog-ink:#1c1c1c; --scrim:rgba(20,24,32,.42);
   --hl-find:#ffe066; --hl-current:#ff9f40;
   --ui:'Noto Sans','Segoe UI',system-ui,-apple-system,sans-serif;
-  --docfont:'Times New Roman',Tinos,'Noto Serif',serif;
+  --docfont:'Noto Sans',sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){
@@ -353,7 +353,7 @@ textarea.code{width:100%;height:180px;font:12px ui-monospace,monospace}
     <button id="sharebtn" data-tip="share"><span id="shareico"></span><span data-k="share">pʋɩ</span></button>
   </header>
 
-  <div id="tabs" role="tablist" aria-label="Onglets du ruban"></div>
+  <div id="tabs"></div>
   <div id="ribbon"></div>
 
   <div id="main">
@@ -367,7 +367,7 @@ textarea.code{width:100%;height:180px;font:12px ui-monospace,monospace}
       <div id="navbody"></div>
     </aside>
 
-    <div id="work">
+    <div id="work" tabindex="0" aria-label="Zone du document">
       <div id="zoomer">
         <div id="ruler"><canvas id="rulercv" height="22"></canvas></div>
         <div id="pages">
@@ -424,190 +424,191 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
 };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const fold = s => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+// Pliage pour la recherche : sans accents ni tons, et lettres mooré ramenées à la lettre latine voisine (ɛ→e, ɩ→i, ʋ→u, ɔ→o, ŋ→n).
+const MO_FOLD = { 'ɛ': 'e', 'ɩ': 'i', 'ʋ': 'u', 'ɔ': 'o', 'ŋ': 'n', 'ɲ': 'n', 'ʊ': 'u' };
+const fold = s => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[ɛɩʋɔŋɲʊ]/g, c => MO_FOLD[c]);
 
 /* ---------- Glossaire mooré (annexes du mémoire : I. Lexique Word-Excel, II. Lexique IA) ---------- */
 // [français, mooré, clé] ; la clé relie le terme aux boutons, onglets et menus de l'interface.
 const LEX_WORD = [
-  ['étiquettes', 'bà̰dè'],
-  ['champs de fusion en surbrillance', 'bɩ̰́nr zɩ̰́ɩ̰gà'],
-  ['cellules', 'bòk kʋdsè'],
-  ['SmartArt', 'búm m mà̰à̰n sʋgà', 'smartart'],
+  ['étiquettes', 'bá̰dè'],
+  ['champs de fusion en surbrillance', 'bḭ́ŋr zḭ́ḭ́ga'],
+  ['cellules', 'bòk kɩdsè'],
+  ['SmartArt', 'búm m má̰á̰n sɩɩgà', 'smartart'],
   ['style', 'búúdá', 'styles'],
-  ['définir par défaut', 'bʋ̰́m m pá wòtó', 'defaut'],
-  ['forme', 'bedmà̰ búúdá'],
-  ['recherche de destinataires', 'déégd bòwbò'],
-  ['coller', 'dʋgélè', 'paste'],
+  ['définir par défaut', 'bṵ́m m pá wòtó', 'defaut'],
+  ['forme', 'bedmá̰ búúdá'],
+  ['recherche de destinataires', 'déégd bɔwbò'],
+  ['coller', 'dɩgɛlè', 'paste'],
   ['bibliothèque de fonctions', 'géélg búúdù'],
-  ['formules', 'géélg mánà̰ŋrè'],
+  ['formules', 'géélg máná̰ŋrè'],
   ['audit de formules', 'géélg véésgo'],
   ['calcul', 'géélgò'],
   ['index', 'gʋlsr sɔ̰́ŋò gilli', 'index'],
-  ['table des matières', 'gʋlsr n tósgdḛ', 'toc'],
-  ['mise à jour de la table des matières', 'gʋlsr páálè n tósgdḛ', 'tocupdate'],
+  ['table des matières', 'gʋlsrò n tósgdɛ̰́', 'toc'],
+  ['mise à jour de la table des matières', 'gʋlsrò páálè n tósgdɛ̰́', 'tocupdate'],
   ['équation', 'geélgo', 'equation'],
   ['vérification', 'gésrò', 'proofing'],
   ['révision', 'gésrò páásgò', 't_review'],
   ['langue', 'goám', 'language'],
-  ['gérer les sources', 'góm mánà̰ŋrè'],
-  ['coupure de mot', 'gʋlsr lébgr wàt sɩ̰́ŋrè'],
-  ['taille de la police', 'gʋlsrà bédmà̰', 'fontsize'],
-  ['disposition', 'gʋlsrò búúdá fà̰à̰'],
+  ['gérer les sources', 'góm máná̰ŋrè'],
+  ['coupure de mot', 'gʋlsr lébgr wàt sḭ́ŋrè'],
+  ['taille de la police', 'gʋlsrà bɛdmá̰', 'fontsize'],
+  ['disposition', 'gʋlsrò búúdá fá̰á̰'],
   ['police', 'gʋlsro búúdù', 'font'],
-  ['interligne', 'gʋls jííb sʋkà', 'linesp'],
-  ['zone de texte', 'gʋlsro zɩ̰́ɩ̰gà', 'textbox'],
+  ['interligne', 'gʋlsà jííb sʋkà', 'linesp'],
+  ['zone de texte', 'gʋlsro zḭ́ígà', 'textbox'],
   ['texte', 'gʋlsrò', 'writing'],
-  ['édition', 'gʋlsrò mánà̰ŋrè', 'm_edit'],
-  ['page de garde', 'gʋlsrò sɩ̰́ŋrè'],
-  ['presse-papiers', 'gúlsr tʋ́kò', 'clipboard'],
-  ['mise en page', 'gúlsrò nàanógò', 't_layout'],
+  ['édition', 'gʋlsrò máná̰ŋrè', 'm_edit'],
+  ['page de garde', 'gʋlsrò sḭ́ŋrè'],
+  ['presse-papiers', 'gʋlsr tʋkò', 'clipboard'],
+  ['mise en page', 'gʋlsrò nàanógò', 't_layout'],
   ['position', 'jàsré'],
   ['imprimer', 'jíís sébra zúgù', 'print'],
-  ['en-tête', 'jɩ̰́ŋr gʋlsrò', 'header'],
+  ['en-tête', 'jḭ́ŋr gʋlsrò', 'header'],
   ['légendes', 'jʋʋré', 'captions'],
   ['définir un nom', 'kis jʋʋre'],
-  ['données', 'kíbàré'],
+  ['données', 'kìbàré'],
   ['information', 'kíbárè', 'info'],
-  ['marges', 'kɩ̰́ŋɩ̰́sà wòrólòm', 'margins'],
-  ['bordure', 'kɩ̰́ŋɩ̰́ŋà', 'borders'],
-  ['enveloppe', 'kòróg bilà'],
-  ['filtres', 'kɔ̰bg wʋsrò'],
-  ['couleur', 'kɔ̰bgò', 'color'],
-  ['reculer', 'kɛ̰́ŋ pòòré'],
+  ['marges', 'kḭ́ḭ́rḭ́sà wòrólòm', 'margins'],
+  ['bordure', 'kḭ́ḭ́rḭ́ŋà', 'borders'],
+  ['enveloppe', 'kòróg bílà'],
+  ['filtres', 'kɔ̰́bg wʋsrò'],
+  ['couleur', 'kɔ̰́bgò', 'color'],
+  ['reculer', 'kɛ̰́ŋ pòóré'],
   ['avancer', 'kɛ̰́ŋ taoré'],
-  ['entrée', 'kɛ̰́ɛ̰b gómà'],
+  ['entrée', 'kɛ̰́ɛ̰́b gómà'],
   ['références', 'màkrè', 't_refs'],
-  ['zoom', 'mà̰ŋ bédré wàlá kidrà', 'zoom'],
+  ['zoom', 'má̰á̰n bédrè wàlà kìdrà', 'zoom'],
   ['comparer', 'mákè'],
-  ['organiser', 'mánà̰ŋr', 'organiser'],
-  ['thèmes', 'mánà̰ŋr sɩ̰́ŋrè', 'theme'],
-  ['modification', 'mánà̰ŋrè'],
+  ['organiser', 'máná̰ŋr', 'organiser'],
+  ['thèmes', 'máná̰ŋr sḭ́ŋrè', 'theme'],
+  ['modification', 'máná̰ŋrè'],
   ['création', 'naanogo', 't_design'],
-  ['symbole', 'nà̰ádè', 'symbol'],
-  ['insérer une légende', 'nìŋg jʋ́ʋ́ré', 'caption'],
+  ['symbole', 'ná̰á̰dè', 'symbol'],
+  ['insérer une légende', 'nìŋg júúré', 'caption'],
   ['insérer une citation', 'nìŋg ned gómdè'],
-  ['insérer une note de fin', 'nìŋg sáàb gómà'],
+  ['insérer une note de fin', 'nìŋg sááb gómá'],
   ['insérer une note de bas de page', 'nìŋg góm tɛ̰́ŋrè', 'footnote'],
-  ['insérer un fichier multimédia', 'nìŋg sʋgà bì gómdè'],
-  ['enregistrer sous', 'nɩ̰́ŋ búm pʋgà', 'saveas'],
-  ['justifier', 'nìŋg kɩ̰́ŋɩ̰́ŋà jé', 'jf'],
-  ['aligner à droite', 'nìŋg ritʋ́ŋó', 'jr'],
-  ['centrer', 'nìŋg sùká', 'jc'],
-  ['numériser', 'nɩ̰ŋg wámd pʋgà', 'numeriser'],
-  ['aligner à gauche', 'nìŋg goàbágá', 'jl'],
-  ['enregistrer', 'nɩ̰́ŋè', 'save'],
-  ['commentaires', 'nɛ́b gómdè', 'comment'],
-  ['bloc d’adresse', 'nɛ́d jìr kíbárè'],
-  ['formule d’appel', 'nɛ́d pʋʋsrò tóólè'],
-  ['habillage', 'nɛ̰́ŋg dʋgél búúdá'],
+  ['insérer un fichier multimédia', 'níŋg sɩɩgà bì gó̰mdè'],
+  ['enregistrer sous', 'nḭ́ŋg búm pʋgà', 'saveas'],
+  ['justifier', 'nḭ́ŋg kḭ́ḭ́rḭ́ŋà jé', 'jf'],
+  ['aligner à droite', 'nḭ́ŋg rìtṵ́ŋó', 'jr'],
+  ['centrer', 'nḭ́ŋg sʋká', 'jc'],
+  ['numériser', 'nḭ́ŋg wámd pʋgà', 'numeriser'],
+  ['aligner à gauche', 'nḭ́ŋg goàbágá', 'jl'],
+  ['enregistrer', 'nḭ́ŋgè', 'save'],
+  ['commentaires', 'nɛ̰́b gómdè', 'comment'],
+  ['bloc d’adresse', 'nɛ̰́d jìr kíbárè'],
+  ['formule d’appel', 'nɛ̰́d pʋʋsrò tóólè'],
+  ['habillage', 'nɛ̰́ŋg dɩgɛl búúdá'],
   ['insertion', 'paasgo', 'insert'],
   ['nouveau', 'páálè', 'newdoc'],
   ['obtenir et transformer', 'páámè nɩ tèké', 'obtenir'],
   ['ajouter le texte', 'páás gʋlsrà'],
-  ['augmenter le retrait', 'páás kɩ̰́ŋɩ̰́ŋgà', 'indent'],
-  ['retrait à droite', 'páás kɩ̰́ŋɩ̰́ŋà ritʋ́ŋó'],
-  ['retrait à gauche', 'páás kɩ̰́ŋɩ̰́ŋà goabágá'],
+  ['augmenter le retrait', 'páás kḭ́ḭ́rḭ́ŋgà', 'indent'],
+  ['retrait à droite', 'páás kḭ́ḭ́rḭ́ŋà rìtṵ́ŋgó'],
+  ['retrait à gauche', 'páás kḭ́ḭ́rḭ́ŋà goabágá'],
   ['ouvrir', 'páké', 'open'],
-  ['espacement arrière', 'pòòr viùrà̰'],
+  ['espacement arrière', 'pòòr vìʋrá̰'],
   ['trame de fond', 'pòòr nɛ̰́ŋgà', 'shading'],
   ['partager', 'pʋɩ', 'share'],
   ['compte', 'róógò', 'account'],
-  ['numéro de ligne', 'rúlgà sɔ̰́re'],
+  ['numéro de ligne', 'rùlgà sɔ̰́re'],
   ['terminer', 'sà'],
   ['options de la feuille', 'sébr búúdù'],
-  ['page vierge', 'sébr vʋʋrʋ'],
+  ['page vierge', 'sébr vɩʋrʋ'],
   ['illustration', 'sébra nɛ̰́ŋg', 'illustrations'],
-  ['orientation', 'sébrà gà̰ágá', 'orient'],
-  ['bordure de page', 'sébrà kɩ̰́ŋɩ̰́ŋà'],
+  ['orientation', 'sébrà gá̰á̰gá', 'orient'],
+  ['bordure de page', 'sébrà kḭ́ḭ́rḭ́ŋà'],
   ['colonnes', 'sébrà kómmà'],
-  ['couleur de page', 'sébrà kɔ̰bgò', 'pagecolor'],
-  ['mise en forme du document', 'sébrà mánà̰ŋrè', 'docformat'],
+  ['couleur de page', 'sébrà kɔ̰́bgò', 'pagecolor'],
+  ['mise en forme du document', 'sébrà máná̰ŋrè', 'docformat'],
   ['arrière-plan de page', 'sébrà póórè', 'background'],
-  ['filigrane', 'sébrà póór nà̰ádè'],
-  ['saut de page', 'sébr nɩ pʋʋrdá', 'break'],
-  ['volet sélection', 'sììs nɛ̰́ɛ̰s'],
-  ['accueil', 'sɩ̰́ŋrè', 't_home'],
-  ['lien hypertexte', 'sór n rééd zɩ̰́ɩ̰gá', 'link'],
-  ['nombre', 'sɔ̰́ɔ̰rè'],
-  ['bibliographie', 'sɛ́b sḛ kàrám'],
-  ['publipostage', 'sɛ́b wʋsrò gʋlsrò', 't_mail'],
-  ['graphique', 'sʋgà búúdù'],
-  ['image', 'sʋgà', 'image'],
-  ['effet', 'sʋgà kɔ̰bgò', 'effects'],
-  ['espacement avant', 'taoor viùrà̰'],
+  ['filigrane', 'sébrà póór ná̰á̰dè'],
+  ['saut de page', 'sébrà tò', 'break'],
+  ['volet sélection', 'síís nɛ̰́ɛ̰́s'],
+  ['accueil', 'sḭ́ŋgrè', 't_home'],
+  ['lien hypertexte', 'sór n rééd zḭ́igá', 'link'],
+  ['nombre', 'sɔ̰́ɔ̰́rè'],
+  ['bibliographie', 'sɛb sɛ̰́ kàrám'],
+  ['publipostage', 'sɛb wʋsrò gʋlsrò', 't_mail'],
+  ['graphique', 'sɩɩgà búúdù'],
+  ['image', 'sɩɩgà', 'image'],
+  ['effet', 'sɩɩgà kɔ̰́bgò', 'effects'],
+  ['espacement avant', 'taoor vìʋrá̰'],
   ['liens', 'táp', 'links'],
   ['renvoi', 'táp n wìnìŋ'],
   ['modifier la liste des destinataires', 'tèk déégdè'],
   ['aligner', 'tòmsè'],
-  ['alignement', 'tɔ̰̀ŋgré'],
+  ['alignement', 'tó̰ŋgré'],
   ['trier', 'tóósè', 'sort'],
-  ['connexions', 'tɔ̰krè'],
-  ['trier et filtrer', 'tʋ̰̀ʋ̰sí nɩ jòògré', 'trierfiltrer'],
+  ['connexions', 'tɔ̰́krè'],
+  ['trier et filtrer', 'tṵ́ṵ́sí né jòògré', 'trierfiltrer'],
   ['macros', 'tʋʋm wʋsrò'],
-  ['règles et aperçu des résultats', 'tʋ́úm sáàb sòré'],
-  ['sélection des destinataires', 'tʋ̰́ʋ̰s déégdè'],
-  ['table des autorités', 'tɔ̰́ɔ̰r gʋlsrò'],
+  ['règles et aperçu des résultats', 'tṵ́úm sáàb sòré'],
+  ['sélection des destinataires', 'tṵ́ṵ́s déégdè'],
+  ['table des autorités', 'tɔ̰́ɔ̰́r gʋlsrò'],
   ['pied de page', 'tɛ̰́ŋr gúlsrò', 'footer'],
   ['note de bas de page suivante', 'tɛ̰́ŋr gómdà tó'],
-  ['outils de données', 'tʋ́ʋ́md tèèd kíbàrè'],
-  ['fenêtre', 'vɔ̰́ɔ̰rè', 'm_window'],
+  ['outils de données', 'tʋʋmd tèèd kìbàré'],
+  ['fenêtre', 'vɔ̰́ɔ̰́rè', 'm_window'],
   ['tableau', 'wál', 'table'],
   ['fichier', 'wámd kíbárè', 'm_file'],
-  ['table des illustrations', 'wámd nɩ nà̰ádè', 'tableill'],
-  ['afficher', 'wɩ̰nɩ̰́ŋg', 'show'],
-  ['afficher tout', 'wɩ̰nɩ̰́ŋg fà̰à̰', 'marks'],
-  ['affichage', 'wɩ̰nɩ̰́ŋgrì', 'view'],
-  ['modes d’affichage', 'wɩ̰nɩ̰́ŋgr búúdù'],
-  ['diminuer le retrait', 'wòòr kɩ̰́ŋɩ̰́ŋà', 'outdent'],
-  ['restreindre la modification', 'wòòr mánà̰ŋrè', 'readonly'],
-  ['taille', 'wòrólòmà̰'],
-  ['puces', 'wíllà', 'ul'],
-  ['exporter', 'zá̰á̰ zɩ̰́ɩ̰́gà tó', 'export'],
-  ['démarrer la fusion', 'ɲàk sébà búúdù'],
+  ['table des illustrations', 'wámd nè ná̰á̰dè', 'tableill'],
+  ['afficher', 'wḭ́nḭ́ŋg', 'show'],
+  ['afficher tout', 'wḭ́nḭ́ŋg fá̰á̰', 'marks'],
+  ['affichage', 'wḭ́nḭ́ŋgrì', 'view'],
+  ['modes d’affichage', 'wḭ́nḭ́ŋgr búúdú'],
+  ['diminuer le retrait', 'wòòr kḭ́ḭ́rḭ́ŋà', 'outdent'],
+  ['restreindre la modification', 'wòòr máná̰ŋrè', 'readonly'],
+  ['taille', 'wòrólòmá̰'],
+  ['puces', 'wìllá', 'ul'],
+  ['exporter', 'zá̰á̰ zḭ́ḭ́gà tó', 'export'],
+  ['démarrer la fusion', 'ɲàk sɛbà búúdù'],
 ];
 const LEX_IA = [
-  ['blockchain', 'bà̰ŋr bɩ̰́ŋ zìiga'],
-  ['traitement du langage naturel', 'búúdà goám tìbsgó'],
-  ['code', 'gʋlsr n solge', 'code'],
-  ['reconnaissance de la parole', 'gómd bà̰ŋrè'],
-  ['génération de texte', 'gʋlsr nà̰ágògò'],
+  ['blockchain', 'bá̰ŋr bḭ́ŋ ziiga'],
+  ['traitement du langage naturel', 'búúdà goám tɩbsgó'],
+  ['code', 'gʋlsr n sólge', 'code'],
+  ['reconnaissance de la parole', 'gómd bá̰ŋrè'],
+  ['génération de texte', 'gʋlsr ná̰á̰nògò'],
   ['assistant virtuel', 'jaamba', 'jaamba'],
-  ['IA faible', 'jám páálè kidrà', 'iafaible'],
+  ['IA faible', 'jám páálè kɩdrà', 'iafaible'],
   ['intelligence artificielle', 'jám páálé', 'ia'],
-  ['IA forte', 'jám páálè bédrè', 'iaforte'],
-  ['IA générative', 'jam paale n wome', 'iagen'],
-  ['test de Turing', 'jám gèsro'],
-  ['données de sortie', 'jìtg kibàrè'],
-  ['apprentissage supervisé', 'kárá̰ŋ nɩ sóré', 'apprsup'],
-  ['big data', 'kibàr bédrè'],
-  ['data', 'kibàrè'],
-  ['analyse des données', 'kibàr véèsgó'],
-  ['données d’entrée', 'kɛ̰́dg kibàrè'],
+  ['IA forte', 'jám páálé bédrè', 'iaforte'],
+  ['IA générative', 'jám páálé n wome', 'iagen'],
+  ['test de Turing', 'jám gésro'],
+  ['données de sortie', 'jítg kìbárè'],
+  ['apprentissage supervisé', 'káráŋg nɩ sórè', 'apprsup'],
+  ['big data', 'kìbár bédré'],
+  ['data', 'kìbárè'],
+  ['analyse des données', 'kíbàr vèèsgó'],
+  ['données d’entrée', 'kɛ̰́dg kìbárè'],
   ['architecture', 'màkrè'],
-  ['automatisation', 'mɛ̰́ŋg tʋʋmdè'],
+  ['automatisation', 'mɛ̰́ŋg tʋʋmdé'],
   ['apprentissage automatique', 'mɛ̰́ŋ zàmsgò'],
-  ['vie artificielle', 'ninsáál vɩ̰́ɩm páálè'],
+  ['vie artificielle', 'nínsáál vɩɩm páálè'],
   ['prompt', 'noore'],
   ['série d’instructions', 'noore wʋsrò'],
-  ['robot', 'nɛ́d kutu'],
-  ['robotique', 'nɛ́d kutu kàrà̰ŋgò'],
+  ['robot', 'nɛd kutu'],
+  ['robotique', 'nɛd kutu káráŋgò'],
   ['algorithme', 'palle'],
   ['cloud', 'sáwàt'],
-  ['programmer', 'sògólgó', 'programmer'],
-  ['reconnaissance d’images', 'sʋgà bà̰ŋgrè'],
-  ['biais', 'táògsgò'],
+  ['programmer', 'sógòlgó', 'programmer'],
+  ['reconnaissance d’images', 'sɩɩgà bá̰ŋgrè'],
+  ['biais', 'táogsgò'],
   ['artefact', 'tudgri'],
-  ['vie privée', 'vɩ̰́ɩm n sólgè'],
-  ['apprentissage profond', 'zàmsgó zʋ̀lʋ̀ŋá'],
-  ['voiture intelligente', 'zɩ́rg sɔ̰̀ŋò'],
-  ['perceptron', 'zʋ̰́kɔ̰̀t kʋ́dré'],
-  ['fonctions cognitives', 'zʋ̰́kɔ̰̀tò tʋʋmdè'],
-  ['réseau de neurones', 'zʋ̰́kɔ̰̀tò bííssì sòrè'],
+  ['vie privée', 'vɩɩm n sólge'],
+  ['apprentissage profond', 'zàmsgó zṵ́lṵ́ŋá'],
+  ['voiture intelligente', 'zírg sɔ̰́ŋó'],
+  ['perceptron', 'zṵ́kɔ̰́t kʋdré'],
+  ['fonctions cognitives', 'zṵ́kɔ̰́tò tʋʋmdè'],
+  ['réseau de neurones', 'zṵ́kɔ̰́tò bíísì sórè'],
   ['capteur', 'ɲɔ̰́gdà', 'capteur'],
 ];
 // Termes de l'interface d'origine (captures) absents du lexique.
 const LEX_UI = [
-  ['Fichier (onglet)', 'KÍBÁRÈ', 't_file'],
   ['Document', 'Sébrà', 'document'],
 ];
 // Chapitre 4 du mémoire : décomposition, traduction littérale et interprétation sémantique.
@@ -633,7 +634,6 @@ const NOTES = {
   link: ['route / qui / mener / endroit', '', ''],
   smartart: ['chose / qui / faire / âme', '', ''],
   defaut: ['chose / qui / rester / comme ça', '', ''],
-  break: ['papier / qui / suivre', '', ''],
   toc: ['écriture / qui / annonce', '', ''],
   tocupdate: ['écriture / nouveau / qui / annonce', '', ''],
   code: ['écriture / qui / se cacher', '', ''],
@@ -649,9 +649,96 @@ const NOTES = {
   iafaible: ['intelligence / nouveau / petit', '', '', 'Composé N + Adj1 + Adj2'],
 };
 const noteText = n => [n[3], n[0] && `Décomposition : / ${n[0]} /`, n[1] && `Traduction littérale : « ${n[1]} »`, n[2]].filter(Boolean).join('. ').replace(/\.\./g, '.');
-const CATS = { word: 'Lexique Word-Excel', ia: 'Lexique IA', ui: 'Interface d’origine', todo: 'À traduire (absent du lexique)' };
+// Termes composés par Claude à partir des mots du lexique, pour les libellés absents du lexique. À valider par l’auteure du mémoire.
+const PROPOSED = {
+  "Propriétés": ["sebra kibare", "sebra « document » + kibare « information »"],
+  "Gestion": ["sebr tʋʋma", "⚠ hors lexique : sebr « document » + tʋʋma « travaux »"],
+  "Supprimer": ["yiis", "yiis « enlever » (Supprimer la ligne : yiis rulga)"],
+  "Nom": ["yʋʋre", "yʋʋre « nom » (Définir un nom : kis yʋʋre)"],
+  "Nom du document": ["sebra yʋʋre", "sebra « document » + yʋʋre « nom »"],
+  "Auteur": ["gʋlsda", "⚠ hors lexique : gʋlsda « celui qui écrit », de gʋls- (gʋlsro)"],
+  "Sujet": ["yɛlle", "⚠ hors lexique : yɛlle « affaire, sujet »"],
+  "Mots-clés": ["goam kãsenga", "⚠ hors lexique : goam « mot » + kãsenga « importants »"],
+  "Objets insérés": ["bũmb sẽn paase", "bũmb « chose » (nĩng bũm pʋga) + sẽn paase « ajoutées » (paasgo)"],
+  "Langue du document": ["sebra goam", "sebra « document » + goam « langue »"],
+  "Annuler": ["lebg poore", "lebg « revenir » (gʋlsr lebgr) + poore « arrière » (kẽng poore)"],
+  "Rétablir": ["lebg taoore", "lebg « revenir » + taoore « avant » (kẽng taoore)"],
+  "Couper": ["yiis n bĩng", "yiis « enlever » + n + bĩng « garder » (bĩngr zĩiga, définition de nĩnge)"],
+  "Copier": ["bĩng a to", "bĩng « garder » + a to « un autre » (zã zĩiga to)"],
+  "Italique": ["gʋlsr sẽn kẽng rɩtungo", "⚠ hors lexique : « écriture qui va vers la droite » : gʋlsr + sẽn kẽng (kẽng taoore) + rɩtungo"],
+  "Paragraphe": ["gom-biis tõkre", "⚠ hors lexique : gom-biisi « phrases » + tõkre « connexion »"],
+  "Format": ["tekre", "tek « changer » (tek võore, tek deegde)"],
+  "Date et heure": ["daar nɩ wakato", "⚠ hors lexique : daare « jour » et wakato « heure », mots courants absents du lexique"],
+  "Largeur de page": ["sebr yalem", "⚠ hors lexique : sebre « page » + yalem « largeur », mot courant absent du lexique"],
+  "Plein écran": ["võor fãa", "võore « fenêtre » + fãa « tout »"],
+  "Règle": ["makr rulga", "⚠ hors lexique : make « comparer, mesurer » + rulga « ligne »"],
+  "Sans interligne": ["n pa tar vɩʋrʋ", "n pa tar « qui n’a pas » (sebr n pa tar gʋlsro) + vɩʋrʋ « espace »"],
+  "Glossaire mooré": ["mooré goam sebre", "goama « mots » + sebre « livre, page »"],
+  "Glossaire": ["goam sebre", "goama « mots » + sebre"],
+  "Raccourcis clavier": ["sor kɩdse", "sore « route » + kɩdse « petits » (bok kɩdse)"],
+  "Renommer le document": ["tek sebra yʋʋre", "tek « changer » + sebra + yʋʋre « nom »"],
+  "Reproduire la mise en forme": ["rɩk n dɩgl manegre", "rɩk « prendre » + dɩgle « coller » + manegre"],
+  "Modifier la casse": ["tek gʋlsr bedre nɩ kɩdra", "tek « changer » + gʋlsr bedre « grandes lettres » + nɩ + kɩdra « petites »"],
+  "Couleur de surlignage du texte": ["gʋlsr poor kõbgo", "gʋlsr + poore « fond » (poor nenga) + kõbgo « couleur »"],
+  "Choisir la couleur de surlignage": ["tũus gʋlsr poor kõbgo", "tũus « choisir » + gʋlsr poor kõbgo"],
+  "Interface": ["Gom-biisi wilgri", "wilgri « affichage »"],
+  "Enregistré dans ce navigateur": ["sebr bĩnga", "sebre + bĩnga « gardée »"],
+  "Gras": ["gʋlsr bedre", "gʋlsr « écriture » + bedre « gros » (cf. yam paale bedre)"],
+  "Souligné": ["tẽngr rulga", "tẽngre « bas » (tẽngr gʋlsro) + rulga « ligne » (rulg sõre)"],
+  "Barré": ["sʋk rulga", "sʋka « milieu » (gʋlsr yiib sʋka) + rulga « ligne »"],
+  "Indice": ["tẽngr gʋlsr kɩdra", "tẽngre « bas » + gʋlsr « écriture » + kɩdra « petit »"],
+  "Exposant": ["yĩngr gʋlsr kɩdra", "yĩngri « haut » (yĩngr gʋlsro) + gʋlsr + kɩdra « petit »"],
+  "Effacer toute la mise en forme": ["yiis manegr fãa", "yiis « enlever » (yiis sebra zug) + manegre + fãa « tout »"],
+  "Augmenter la taille de police": ["paas gʋlsr woglem", "paas « augmenter » (paas kɩrenga) + gʋlsr + woglem « taille »"],
+  "Réduire la taille de police": ["woor gʋlsr woglem", "woor « diminuer » (woor kɩrenga) + gʋlsr + woglem « taille »"],
+  "Tout sélectionner": ["tũus fãa", "tũus « sélectionner » (tũũs deegde) + fãa « tout »"],
+  "Rechercher": ["baoobo", "baoobo « recherche » (deegd baoobo)"],
+  "Remplacer": ["tek goama", "tek « changer » (paame nɩ teke) + goama « mots »"],
+  "Numérotation": ["sõor willa", "sõore « nombre » + willa « puces »"],
+  "Pages": ["seba", "seba « pages » (pluriel de sebre, définitions du tableau)"],
+  "Numéros de page": ["sebr sõore", "sebre « page » + sõore « nombre »"],
+  "En-tête et pied de page": ["yĩngr nɩ tẽngr gʋlsro", "yĩngr gʋlsro « en-tête » + nɩ « et » + tẽngr gʋlsro « pied de page »"],
+  "En-tête et pied": ["yĩngr nɩ tẽngr gʋlsro", "yĩngr gʋlsro « en-tête » + nɩ « et » + tẽngr gʋlsro « pied de page »"],
+  "Notes": ["tẽngr goama", "tẽngr goama « notes de bas de page » (définition de tẽngr gómdà tó)"],
+  "Insérer une ligne au-dessus": ["nĩng rulga yĩngri", "nĩng « insérer » + rulga « ligne » + yĩngri « dessus »"],
+  "Insérer une ligne en dessous": ["nĩng rulga tẽngre", "nĩng « insérer » + rulga « ligne » + tẽngre « dessous »"],
+  "Insérer une colonne à gauche": ["nĩng komma goabga", "nĩng « insérer » + komma « colonne » (sebra komma) + goabga « gauche »"],
+  "Insérer une colonne à droite": ["nĩng komma rɩtungo", "nĩng « insérer » + komma « colonne » + rɩtungo « droite »"],
+  "Supprimer la ligne": ["yiis rulga", "yiis « enlever » + rulga « ligne »"],
+  "Supprimer la colonne": ["yiis komma", "yiis « enlever » + komma « colonne »"],
+  "Supprimer le tableau": ["yiis wal", "yiis « enlever » + wal « tableau »"],
+  "Supprimer tous les commentaires": ["yiis neb gomde fãa", "yiis « enlever » + neb gomde « commentaires » + fãa « tout »"],
+  "Espacement des paragraphes": ["vɩʋrʋ", "vɩʋrʋ « espace » (poor vɩʋra, taoor vɩʋrʋ)"],
+  "Statistiques": ["goam sõore", "goama « mots » + sõore « nombre »"],
+  "Une page": ["sebr yembre", "sebre « page » + yembre « un » (définition de make)"],
+  "Plusieurs pages": ["seb wʋsro", "seba « pages » + wʋsro « beaucoup » (tʋʋm wʋsro, noore wʋsro)"],
+  "Caractères mooré": ["mooré gʋlsa", "gʋlsa « lettres, écritures »"],
+  "Outils": ["tʋʋmd teedo", "tʋʋmd teed « outils » (tʋʋmd teed kibayã)"],
+  "Aide": ["sõngre", "sõng « aider » (bũmb sõngd…, définitions du tableau)"],
+  "Titre": ["zug yʋʋre", "zug « tête, dessus » (yiis sebra zug) + yʋʋre « nom » (kis yʋʋre) ; yʋʋre seul veut dire « légendes » dans le tableau"],
+  "Titre 1": ["zug yʋʋr 1", "yʋʋre « nom, titre » + numéro"],
+  "Titre 2": ["zug yʋʋr 2", "yʋʋre + numéro"],
+  "Titre 3": ["zug yʋʋr 3", "yʋʋre + numéro"],
+  "Sous-titre": ["zug yʋʋr kɩdra", "yʋʋre « titre » + kɩdra « petit »"],
+  "Citation": ["ned gomde", "ned gomde « parole de quelqu’un » (nĩng ned gomde)"],
+  "Normal": ["buud m pa woto", "buudu « style » + m pa woto « qui reste comme ça » (bũm m pa woto)"],
+  "Titres": ["zug yʋʋre", "yʋʋre « nom, titre »"],
+  "Résultats": ["tʋʋm saab", "tʋʋm saab « fin du travail » (tʋʋm saab sore)"],
+  "Rechercher dans le document": ["bao sebra pʋga", "bao « chercher » + sebra « document » + pʋga « dans »"],
+  "Page": ["sebre", "sebre « page »"],
+  "mots": ["goama", "goama « mots »"],
+  "caractères": ["gʋlsa", "gʋlsa « lettres »"],
+  "À propos de Gom-biisi": ["Gom-biisi kibare", "kibare « information »"],
+  "Volet de navigation": ["sor nẽes", "sor « route » (sor n reed zĩiga) + nẽes « volet » (siis nẽes)"],
+  "Tout supprimer": ["yiis fãa", "yiis « enlever » + fãa « tout »"],
+  "Espacement": ["vɩʋrʋ", "vɩʋrʋ « espace »"],
+  "Lettres mooré": ["mooré gʋlsa", "gʋlsa « lettres »"],
+  "Sélectionner": ["tũusi", "tũusi « trier, sélectionner »"],
+};
+const CATS = { word: 'Lexique Word-Excel', ia: 'Lexique IA', ui: 'Interface d’origine', prop: 'Proposés à partir du lexique (à valider)', todo: 'À traduire (absent du lexique)' };
 // Tableau du 25/09/2026 : orthographe standard (sans tons), catégorie et définition en mooré. Clé : « français du lexique|lexique ».
 const LEX_STD = {
+  "Document|ui": ["sebra", "", "n", ""],
   "étiquettes|word": ["bãnde", "Ya zĩ kẽeda tɩ naan bãnde.", "n", ""],
   "champs de fusion en surbrillance|word": ["bĩngr zĩĩga", "Ya zĩ wilgda ned kibare n be sebra pʋga.", "n", ""],
   "cellules|word": ["bok kɩdse", "Ya bok kɩdsa fãa n be sebra pʋga tõnd rɩka tɩ maan gɛɛla.", "n", ""],
@@ -703,9 +790,9 @@ const LEX_STD = {
   "insérer une note de bas de page|word": ["nĩng tẽngre goama", "Ya zĩ kẽeda nĩng gom sebra tẽngre.", "v", ""],
   "insérer un fichier multimédia|word": ["nĩng sɩɩgà bi gomde", "Ya zĩ kẽeda ti nĩng sɩɩgà bi gomde sebra pʋga.", "v", ""],
   "aligner à droite|word": ["nĩng rɩtungo", "Ya zĩ kẽeda nĩng gom-biisa sebra ritungo.", "v", ""],
-  "centrer|word": ["nĩng sʊ́ká", "Ya zĩ kẽeda nĩng gom-biisi sebra sʋka.", "v", ""],
+  "centrer|word": ["nĩng sʋ́ká", "Ya zĩ kẽeda nĩng gom-biisi sebra sʋka.", "v", ""],
   "justifier|word": ["nĩng kiiriŋà jé", "Ya zĩ kẽeda nĩng gʋlsra fãan kĩriŋa ye sebra pʋga.", "v", ""],
-  "numériser|word": ["nĩng wámd pʊ̀gà", "Ya zĩ kẽeda tek seba yardo.", "v", ""],
+  "numériser|word": ["nĩng wámd pʋ̀gà", "Ya zĩ kẽeda tek seba yardo.", "v", ""],
   "aligner à gauche|word": ["nĩng goàbágá", "Ya zĩ kẽeda nĩng gom-biisa sebra gwabaga.", "v", ""],
   "habillage|word": ["neng dɩgl buuda", "Ya gʋlsa n naage ne bũmba to.", "n", ""],
   "enregistrer sous|word": ["nĩng bũm pʋga", "Ya sebr bĩngr zĩiga to.", "v", ""],
@@ -823,12 +910,17 @@ const LEX_NEW = [
   ["changer de fenêtre", "tek võore", "Ya zĩ kẽeda tek tʋʋmd zĩiga.", "v"],
   ["nouvelle fenêtre", "võor paale", "Ya zĩ kẽeda pak tʋʋmd zĩis yiib soaba tɩ tʋʋm tʋʋmã.", "n"],
 ];
+// L'orthographe standard ne note pas les tons : on retire accents aigu, grave, circonflexe, macron et caron, mais on garde le tilde de nasalité.
+const noTone = s => s.normalize('NFD').replace(/[\u0300\u0301\u0302\u0304\u030C]/g, '').normalize('NFC');
 const GLOSSARY = [['word', LEX_WORD], ['ia', LEX_IA], ['ui', LEX_UI]].flatMap(([cat, list]) =>
   list.map(([fr, mo, k]) => {
-    const [std, def, pos, variant] = LEX_STD[fr + '|' + cat] || [];
-    return { k: k || cat + ':' + fold(fr).replace(/[^a-z0-9]+/g, '-'), fr, mo, std, def, pos, variant, cat, note: k && NOTES[k] };
+    const [std0, def, pos, variant] = LEX_STD[fr + '|' + cat] || [];
+    // Sans graphie standard dans le tableau : on la déduit de la notation tonale (tons retirés, ḭ → ɩ) et on la signale comme déduite.
+    const derived = !std0 && cat !== 'ui' && mo ? noTone(mo).normalize('NFD').replace(/i\u0330/g, 'ɩ').replace(/\u0330/g, '').normalize('NFC') : '';
+    const std = std0 ? noTone(std0) : derived;
+    return { k: k || cat + ':' + fold(fr).replace(/[^a-z0-9]+/g, '-'), fr, mo, std, stdDerived: !!derived, def, pos, variant, cat, note: k && NOTES[k] };
   }));
-LEX_NEW.forEach(([fr, std, def, pos]) => GLOSSARY.push({ k: 'word:' + fold(fr).replace(/[^a-z0-9]+/g, '-'), fr, mo: '', std, def, pos, cat: 'word' }));
+LEX_NEW.forEach(([fr, std, def, pos]) => GLOSSARY.push({ k: 'word:' + fold(fr).replace(/[^a-z0-9]+/g, '-'), fr, mo: '', std: noTone(std), def, pos, cat: 'word' }));
 const GL = Object.fromEntries(GLOSSARY.map(g => [g.k, g]));
 let overrides = store.get('gombiisi.glossaire', {});
 // Orthographe affichée : « std » = standard sans tons (tableau), « ton » = notation tonale du mémoire.
@@ -841,9 +933,11 @@ const slug = s => fold(s).replace(/…$/, '').replace(/[^a-z0-9]+/g, '_').replac
 function reg(k, fr) {
   if (GL[k]) return k;
   fr = fr.replace(/…$/, '');
-  const same = GLOSSARY.find(g => g.cat === 'todo' && fold(g.fr) === fold(fr));
+  const same = GLOSSARY.find(g => (g.cat === 'todo' || g.cat === 'prop') && fold(g.fr) === fold(fr));
   if (same) return same.k;
-  const e = { k, fr, mo: '', cat: 'todo' }; GLOSSARY.push(e); GL[k] = e;
+  const p = PROPOSED[fr];
+  const e = p ? { k, fr, mo: '', std: p[0], why: p[1], cat: 'prop' } : { k, fr, mo: '', cat: 'todo' };
+  GLOSSARY.push(e); GL[k] = e;
   return k;
 }
 const t = (k, fr) => mo(reg(k, fr)) || fr;
@@ -914,7 +1008,7 @@ const P = {
 const ico = (n, cls = 'i') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || ''}</svg>`;
 
 /* ---------- État ---------- */
-const DEFAULT_SETTINGS = { margin: 2.5, orient: 'portrait', pageColor: '#ffffff', font: 'Times New Roman', spacing: 'normal', pageNumbers: true, lang: 'mos', spell: false };
+const DEFAULT_SETTINGS = { margin: 2.5, orient: 'portrait', pageColor: '#ffffff', font: 'Noto Sans', spacing: 'normal', pageNumbers: true, lang: 'mos', spell: false };
 let docs = store.get('gombiisi.docs', {});
 let current = null;
 let S = { ...DEFAULT_SETTINGS };
@@ -924,7 +1018,10 @@ let ui = Object.assign({ nav: false, navTab: 'titres', ruler: true, marks: false
 const saveUi = () => store.set('gombiisi.ui', ui);
 
 /* ---------- Commandes ---------- */
-const FONTS = ['Times New Roman', 'Arial', 'Calibri', 'Cambria', 'Georgia', 'Garamond', 'Verdana', 'Tahoma', 'Noto Sans', 'Courier New'];
+// Polices qui affichent toutes les lettres du mooré (ɛ ɩ ʋ ŋ, nasales, tons). Andika et Charis SIL sont conçues par SIL pour les langues africaines.
+const FONTS = ['Noto Sans', 'Noto Serif', 'Andika', 'Charis SIL', 'Times New Roman', 'Arial'];
+const SERIF = ['Noto Serif', 'Charis SIL', 'Times New Roman'];
+const fontStack = f => `'${f}', ${f === 'Times New Roman' ? 'Tinos, ' : ''}${SERIF.includes(f) ? "'Noto Serif', serif" : "'Noto Sans', sans-serif"}`;
 const SIZES = [8, 9, 10, 10.5, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
 const FONT_COLORS = ['#000000', '#404040', '#7f7f7f', '#c00000', '#ff0000', '#ed7d31', '#ffc000', '#70ad47', '#00b050', '#00b0f0', '#2e75b6', '#1f3864', '#7030a0', '#a8660b'];
 const HILITE = ['#ffff00', '#00ff00', '#00ffff', '#ff00ff', '#8db3e2', '#ff8080', '#ffd966', '#c6e0b4', '#bdd7ee', '#e2cfee', '#d9d9d9', '#f8cbad', '#fff2cc', 'transparent'];
@@ -1040,7 +1137,7 @@ function rb(act, opt = {}) {
   const c = C[act];
   const inner = opt.text ? `<span class="glyph" style="${opt.style || ''}">${opt.text}</span>` : c.icon ? ico(c.icon) : c.glyph ? `<span class="glyph">${c.glyph}</span>` : esc(c.fr);
   const lbl = opt.big ? `<span data-lbl="${act}">${esc(mo(c.k) || opt.label || c.fr)}</span>` : (opt.label ? `<span>${esc(mo(c.k) || opt.label)}</span>` : '');
-  return `<button class="rb${opt.big ? ' big' : ''}" data-act="${act}" data-tip="${act}" aria-label="${esc(c.fr)}">${inner}${lbl}${opt.caret ? '<span class="caret">▾</span>' : ''}</button>`;
+  return `<button class="rb${opt.big ? ' big' : ''}" data-act="${act}" data-tip="${act}" aria-label="${esc(mo(c.k) || c.fr)}">${inner}${lbl}${opt.caret ? '<span class="caret">▾</span>' : ''}</button>`;
 }
 const seg = (...b) => `<span class="seg">${b.join('')}</span>`;
 const grp = (cap, body, capk = reg('g_' + slug(cap), cap)) => `<div class="grp"><div class="body">${body}</div><div class="cap" data-k="${capk}">${esc(mo(capk) || cap)}</div></div>`;
@@ -1058,13 +1155,13 @@ const STYLES = [
 ];
 
 function buildRibbon() {
-  const colorBtn = (act, menu, sw, text) => `<span class="seg"><button class="rb split" data-act="${act}" data-tip="${act}" aria-label="${esc(C[act].fr)}"><span class="colorbtn"><span class="glyph" style="font-weight:700">${text}</span><span class="swatch" id="sw-${act}"></span></span></button><button class="rb" style="min-width:16px;padding:0 2px" data-act="${menu}" data-tip="${menu}" aria-label="${esc(C[menu].fr)}"><span class="caret">▾</span></button></span>`;
+  const colorBtn = (act, menu, sw, text) => `<span class="seg"><button class="rb split" data-act="${act}" data-tip="${act}" aria-label="${esc(mo(C[act].k) || C[act].fr)}"><span class="colorbtn"><span class="glyph" style="font-weight:700">${text}</span><span class="swatch" id="sw-${act}"></span></span></button><button class="rb" style="min-width:16px;padding:0 2px" data-act="${menu}" data-tip="${menu}" aria-label="${esc(mo(C[menu].k) || C[menu].fr)}"><span class="caret">▾</span></button></span>`;
   const gallery = `<div class="gallery" role="listbox" aria-label="Styles">${STYLES.map(s => `<button class="sty" data-style="${s.id}" data-tip="style:${s.id}" role="option"><span class="pv" style="${s.css}">${s.pv}</span><span class="lb">${esc(t('st_' + s.id, s.fr))}</span></button>`).join('')}</div>`;
   const P = {
     home: [
       grp('Presse-papiers', rb('paste', { big: true }) + rows(rb('cut'), rb('copy'), rb('painter')), 'clipboard'),
       grp('Police', rows(
-        `<select class="rsel" id="fontname" data-tip="fontname" aria-label="Police">${FONTS.map(f => `<option style="font-family:'${f}'">${f}</option>`).join('')}</select><input class="rsel" id="fontsize" list="sizes" data-tip="fontsize" aria-label="Taille de police" inputmode="decimal"><datalist id="sizes">${SIZES.map(s => `<option value="${String(s).replace('.', ',')}">`).join('')}</datalist>` +
+        `<select class="rsel" id="fontname" data-tip="fontname" aria-label="${esc(mo('font') || 'Police')}">${FONTS.map(f => `<option style="font-family:'${f}'">${f}</option>`).join('')}</select><input class="rsel" id="fontsize" list="sizes" data-tip="fontsize" aria-label="${esc(mo('fontsize') || 'Taille de police')}" inputmode="decimal"><datalist id="sizes">${SIZES.map(s => `<option value="${String(s).replace('.', ',')}">`).join('')}</datalist>` +
         rb('grow', { text: 'A<sup style="font-size:9px">+</sup>' }) + rb('shrink', { text: 'A<sup style="font-size:9px">−</sup>', style: 'font-size:13px' }) + rb('casemenu', { text: 'Aa', caret: true }) + rb('clear', { text: 'A<span style="color:#d13438;font-size:11px">✕</span>' }),
         seg(rb('bold', { text: 'G', style: 'font-weight:700' }), rb('italic', { text: 'I', style: 'font-style:italic' }), rb('underline', { text: 'S', style: 'text-decoration:underline' }), rb('strike', { text: 'abc', style: 'text-decoration:line-through;font-size:12px' })) +
         seg(rb('sub', { text: 'X<sub style="font-size:9px">2</sub>' }), rb('sup', { text: 'X<sup style="font-size:9px">2</sup>' })) +
@@ -1126,9 +1223,9 @@ for (const c of Object.values(C)) {
   if (!c.k) c.k = reg('c_' + slug(c.fr), c.fr);
   if (c.g && !GL[c.g]) c.g = reg('g_' + slug(c.g), c.g);
 }
-const TABS = [['file', 't_file', 'Fichier'], ['home', 't_home', 'Accueil'], ['insert', 'insert', 'Insertion'], ['design', 't_design', 'Création'], ['layout', 't_layout', 'Mise en page'], ['refs', 't_refs', 'Références'], ['mail', 't_mail', 'Publipostage'], ['review', 't_review', 'Révision'], ['view', 'view', 'Affichage']];
+const TABS = [['file', 'm_file', 'Fichier'], ['home', 't_home', 'Accueil'], ['insert', 'insert', 'Insertion'], ['design', 't_design', 'Création'], ['layout', 't_layout', 'Mise en page'], ['refs', 't_refs', 'Références'], ['mail', 't_mail', 'Publipostage'], ['review', 't_review', 'Révision'], ['view', 'view', 'Affichage']];
 function buildTabs() {
-  $('#tabs').innerHTML = TABS.map(([id, k, fr]) => `<button class="tab${id === 'file' ? ' file' : ''}" role="tab" data-tabid="${id}" data-tip="tab:${id}" aria-selected="false">${esc(mo(k) || fr)}</button>`).join('') +
+  $('#tabs').innerHTML = '<div role="tablist" aria-label="Onglets du ruban" style="display:contents">' + TABS.map(([id, k, fr]) => `<button class="tab${id === 'file' ? ' file' : ''}" role="tab" data-tabid="${id}" data-tip="tab:${id}" aria-selected="false">${esc(mo(k) || fr)}</button>`).join('') + '</div>' +
     `<button class="tb" id="ribbontoggle" data-tip="ribbontoggle" aria-label="Réduire le ruban" style="color:var(--chrome-ink)">${ico('up')}</button>`;
   selectTab(ui.tab);
 }
@@ -1199,7 +1296,7 @@ function openMenu(anchor, items) {
     b.addEventListener('click', () => { const a = anchor; closeMenu(); it.run(a); });
     m.appendChild(b);
   });
-  placeMenu(m, anchor);
+  placeMenu(m, anchor); tagLang(m.parentNode);
   openMenuEl = m; openMenuAnchor = anchor; anchor.setAttribute('aria-expanded', 'true');
 }
 function openPalette(anchor, colors, pick) {
@@ -1234,7 +1331,7 @@ function tipHtml(key) {
   else { const c = C[key]; if (!c) return ''; fr = c.fr.replace(/…$/, ''); k = c.k; g = c.g; keys = c.key; }
   const m = mo(k);
   let h = `<b>${esc(fr)}${keys ? ` <span class="muted" style="font-weight:400">(${esc(keys)})</span>` : ''}</b>`;
-  h += m ? `<div>Mooré : <span class="mo">${esc(m)}</span></div>` : `<div class="muted">${NO_MO}</div>`;
+  h += m ? `<div>Mooré : <span class="mo">${esc(m)}</span>${GL[k] && GL[k].cat === 'prop' && !overrides[k] ? ' <i class="muted">(proposé, à valider)</i>' : ''}</div>` : `<div class="muted">${NO_MO}</div>`;
   const n = k && GL[k] && GL[k].note;
   if (k && GL[k] && GL[k].def && m) h += `<div class="muted" lang="mos">${esc(GL[k].def)}</div>`;
   if (n && m && (n[1] || n[0])) h += `<div class="muted">${n[1] ? `Sens littéral : « ${esc(n[1])} »` : `/ ${esc(n[0])} /`}</div>`;
@@ -1522,7 +1619,7 @@ function drawSheets() {
   pagesEl.style.width = (nPages * pw + (nPages - 1) * G) + 'px';
   pagesEl.style.height = ph + 'px';
   $('#ruler').style.width = pagesEl.style.width;
-  const hdr = `Gom-biisi — ${esc(mo('writing') || 'écriture')}`;
+  const hdr = '';
   let h = '';
   for (let i = 0; i < nPages; i++) {
     h += `<div class="sheet" style="left:${i * (pw + G)}px;width:${pw}px;height:${ph}px;background:${S.pageColor}"><div class="hdr">${hdr}</div>${S.pageNumbers ? `<div class="ftr">${i + 1}</div>` : ''}</div>`;
@@ -1708,7 +1805,7 @@ function newDocument(skipConfirm) {
   if (skipConfirm) go(); else go();
 }
 function applySettings() {
-  doc.style.fontFamily = `'${S.font}', ${S.font === 'Times New Roman' ? "Tinos, 'Noto Serif', serif" : "'Noto Sans', sans-serif"}`;
+  doc.style.fontFamily = fontStack(S.font);
   doc.classList.toggle('spacing-none', S.spacing === 'none');
   doc.classList.toggle('spacing-wide', S.spacing === 'wide');
   doc.spellcheck = !!S.spell;
@@ -1793,9 +1890,10 @@ function renderNav() {
     body.onclick = e => { const b = e.target.closest('[data-m]'); if (b) gotoMatch(+b.dataset.m, true); };
   } else {
     const fq = fold(q);
-    const list = GLOSSARY.filter(g => !fq || [mo(g.k), g.mo, g.std || '', g.fr].some(x => fold(x).includes(fq)));
+    const order = Object.keys(CATS);
+    const list = GLOSSARY.filter(g => !fq || [mo(g.k), g.mo, g.std || '', g.fr].some(x => fold(x).includes(fq))).map((g, i) => [g, i]).sort((a, b) => order.indexOf(a[0].cat) - order.indexOf(b[0].cat) || a[1] - b[1]).map(x => x[0]);
     body.innerHTML = `<div class="seg ortho" role="group" aria-label="Orthographe"><button data-ortho="std" aria-pressed="${ORTHO === 'std'}">Orthographe standard</button><button data-ortho="ton" aria-pressed="${ORTHO === 'ton'}">Notation tonale</button></div><p class="muted">${list.length} terme${list.length > 1 ? 's' : ''} sur ${GLOSSARY.length}${q ? ` pour « ${esc(q)} »` : ''}</p>` + list.map((g, i) => `${i === 0 || list[i - 1].cat !== g.cat ? `<h4 class="glcat">${CATS[g.cat]}</h4>` : ''}
-      <div class="gl"><span class="mo">${mo(g.k) ? esc(mo(g.k)) : '<i class="muted" style="font-weight:400">à traduire</i>'}</span><span class="fr">${esc(g.fr)}${overrides[g.k] ? ' · modifié' : ''}${alt(g) ? `<br>${ORTHO === 'std' ? 'Notation tonale' : 'Orthographe standard'} : ${esc(alt(g))}` : ''}${g.variant ? `<br>Variante : ${esc(g.variant)}` : ''}${g.def ? `<br><span lang="mos">${esc(g.def)}</span>` : ''}${g.note ? `<br><i>${esc(noteText(g.note))}</i>` : ''}</span>
+      <div class="gl"><span class="mo">${mo(g.k) ? esc(mo(g.k)) : '<i class="muted" style="font-weight:400">à traduire</i>'}</span><span class="fr">${esc(g.fr)}${overrides[g.k] ? ' · modifié' : ''}${alt(g) ? `<br>${ORTHO === 'std' ? 'Notation tonale' : 'Orthographe standard'} : ${esc(alt(g))}` : ''}${g.variant ? `<br>Variante : ${esc(g.variant)}` : ''}${g.stdDerived ? '<br><i>Graphie standard déduite de la notation tonale (absente du tableau), à valider.</i>' : ''}${g.def ? `<br><span lang="mos">${esc(g.def)}</span>` : ''}${g.note ? `<br><i>${esc(noteText(g.note))}</i>` : ''}${g.why ? `<br><i>Proposé : ${esc(g.why)}</i>` : ''}</span>
       <span class="acts"><button class="tb" style="color:inherit"${mo(g.k) ? '' : ' hidden'} data-ins="${g.k}" aria-label="Insérer « ${esc(mo(g.k))} » dans le document" title="Insérer dans le document">${ico('insertIco')}</button><button class="tb" style="color:inherit" data-edit="${g.k}" aria-label="Modifier le terme ${esc(g.fr)}" title="Modifier le terme mooré">${ico('edit')}</button></span></div>`).join('') +
       '<p class="muted" style="margin-top:12px">Les termes viennent des annexes du mémoire (lexique Word-Excel et lexique IA). Les libellés « à traduire » n’ont pas encore d’équivalent : cliquez sur le crayon pour saisir le terme mooré ou pour corriger un terme, toute l’interface suit.</p>';
     body.onclick = e => {
@@ -1804,6 +1902,7 @@ function renderNav() {
       if (ins) exec('insertText', mo(ins.dataset.ins));
       if (ed) editTermDialog(ed.dataset.edit);
     };
+    tagLang(body);
   }
 }
 
@@ -1821,48 +1920,49 @@ function closeBackstage() { $('#backstage').hidden = true; selectTab(ui.tab === 
 function renderBackstage() {
   const items = [
     ['info', mo('info'), 'Informations du document'],
-    ['props', 'Propriétés', 'Propriétés du document'],
+    ['props', t('bs_props', 'Propriétés'), 'Propriétés du document'],
     ['proof', mo('proofing'), 'Vérification et langue'],
-    ['protect', 'Protection', 'Protéger le document'],
+    ['protect', mo('readonly'), 'Protéger le document'],
     '-',
-    ['manage', 'Gestion', 'Enregistrer, exporter, imprimer'],
-    ['about', 'Gom-biisi', 'À propos du logiciel'],
+    ['manage', t('bs_manage', 'Gestion'), 'Gestion : enregistrer, exporter, imprimer'],
+    ['about', mo('c_a_propos_de_gom_biisi') || 'Gom-biisi', 'À propos du logiciel'],
   ];
   $('#bsnav').innerHTML = `<button class="back" data-bs="back">← ${esc(mo('document') || 'Document')}</button>
-    <div class="brand"><b>KIBARE</b><small>kíbárè — ${esc(mo('m_file'))}</small></div>` +
-    items.map(it => it === '-' ? '<hr>' : `<button class="bsitem" data-bs="${it[0]}" aria-current="${it[0] === bsSection}"><b>${esc(it[1])}</b><small>${esc(it[2])}</small></button>`).join('');
+    <div class="brand" title="Fichier"><b lang="mos">${esc(mo('m_file'))}</b></div>` +
+    items.map(it => it === '-' ? '<hr>' : `<button class="bsitem" data-bs="${it[0]}" aria-current="${it[0] === bsSection}" title="${esc(it[2])}"><b lang="mos">${esc(it[1])}</b></button>`).join('');
   const m = $('#bsmain');
   const c = counts();
-  const quick = `<div class="card"><h3>Gestion rapide</h3><div class="quick">
-    <button data-run="save"><b>${esc(mo('save'))}</b><small>Enregistrer</small></button>
-    <button data-run="saveas"><b>${esc(mo('saveas'))}</b><small>Enregistrer sous</small></button>
-    <button data-run="print"><b>${esc(mo('print'))}</b><small>Imprimer</small></button>
-    <button data-run="export"><b>${esc(mo('export'))}</b><small>Exporter en HTML</small></button></div></div>`;
+  // Bouton de la page Fichier : terme mooré affiché, équivalent français en bulle d'aide.
+  const qb = (run, label, fr) => `<button data-run="${run}" title="${esc(fr)}"><b lang="mos">${esc(label)}</b></button>`;
+  const h2 = (label, fr) => `<h2 lang="mos" title="${esc(fr)}">${esc(label)}</h2>`;
+  const h3 = (label, fr) => `<h3 lang="mos" title="${esc(fr)}">${esc(label)}</h3>`;
+  const dt = (label, fr) => `<dt lang="mos" title="${esc(fr)}">${esc(label)}</dt>`;
+  const quick = `<div class="card">${h3(t('bs_manage', 'Gestion'), 'Gestion rapide')}<div class="quick">
+    ${qb('save', mo('save'), 'Enregistrer')}${qb('saveas', mo('saveas'), 'Enregistrer sous')}${qb('print', mo('print'), 'Imprimer')}${qb('export', mo('export'), 'Exporter en HTML')}</div></div>`;
   if (bsSection === 'info') {
     const size = new Blob([serialize()]).size;
-    m.innerHTML = `<h2>${esc(mo('info'))}</h2><p class="sub">Informations sur « ${esc(current.title)} »</p>
-    <div class="card"><h3>${esc(mo('document'))} — Document</h3><dl class="kv">
-      <dt>Nom</dt><dd>${esc(current.title)}</dd>
-      <dt>Type</dt><dd>Document Gom-biisi (HTML / texte, UTF-8)</dd>
-      <dt>Taille</dt><dd>${nf.format(Math.max(0.1, Math.round(size / 102.4) / 10))} Ko</dd>
-      <dt>Pages</dt><dd>${nPages}</dd>
-      <dt>Mots</dt><dd>${nf.format(c.words)}</dd>
-      <dt>Caractères</dt><dd>${nf.format(c.chars)} (${nf.format(c.noSp)} sans espaces)</dd>
-      <dt>Paragraphes</dt><dd>${nf.format(c.paras)}</dd>
-      <dt>Objets insérés</dt><dd>${c.objects}</dd>
-      <dt>Langue</dt><dd>${S.lang === 'mos' ? 'Mooré (Burkina Faso)' : 'Français (France)'}</dd>
-      <dt>Création</dt><dd>${fmtDate(current.created)}</dd>
-      <dt>Dernière modification</dt><dd>${fmtDate(current.modified)}</dd>
-      <dt>État</dt><dd>${dirty ? 'Modifications non enregistrées' : 'Enregistré dans ce navigateur'}${readOnly ? ' · lecture seule' : ''}</dd>
+    m.innerHTML = `${h2(mo('info'), 'Informations du document')}
+    <div class="card">${h3(current.title, 'Document')}<dl class="kv">
+      ${dt(t('bs_nom', 'Nom'), 'Nom')}<dd>${esc(current.title)}</dd>
+      ${dt(mo('word:taille'), 'Taille')}<dd>${nf.format(Math.max(0.1, Math.round(size / 102.4) / 10))} Ko</dd>
+      ${dt(t('ui_pages', 'Pages'), 'Pages')}<dd>${nPages}</dd>
+      ${dt(t('ui_mots', 'mots'), 'Mots')}<dd>${nf.format(c.words)}</dd>
+      ${dt(t('ui_car', 'caractères'), 'Caractères')}<dd>${nf.format(c.chars)} (${nf.format(c.noSp)})</dd>
+      ${dt(t('bs_para', 'Paragraphe'), 'Paragraphes')}<dd>${nf.format(c.paras)}</dd>
+      ${dt(t('bs_objets', 'Objets insérés'), 'Objets insérés')}<dd>${c.objects}</dd>
+      ${dt(mo('language'), 'Langue')}<dd>${S.lang === 'mos' ? 'Mooré (Burkina Faso)' : 'Français (France)'}</dd>
+      ${dt(mo('t_design'), 'Création')}<dd>${fmtDate(current.created)}</dd>
+      ${dt(mo('word:modification'), 'Dernière modification')}<dd>${fmtDate(current.modified)}</dd>
+      ${dt(mo('save'), 'État')}<dd>${dirty ? '●' : '✓ ' + esc(t('ui_enregistre', 'Enregistré dans ce navigateur'))}${readOnly ? ' · ' + esc(mo('readonly')) : ''}</dd>
     </dl></div>${quick}`;
   } else if (bsSection === 'props') {
-    m.innerHTML = `<h2>Propriétés</h2><p class="sub">Ces informations sont reprises dans les fichiers exportés.</p>
+    m.innerHTML = `${h2(t('bs_props', 'Propriétés'), 'Propriétés du document')}
     <form class="card" id="propsform">
-      <label class="field">Nom du document<input id="p-title" value="${esc(current.title)}" maxlength="120" required></label>
-      <label class="field">Auteur<input id="p-author" value="${esc(current.author || '')}" maxlength="120"></label>
-      <label class="field">Sujet<input id="p-subject" value="${esc(current.subject || '')}" maxlength="200"></label>
-      <label class="field">Mots-clés<input id="p-keywords" value="${esc(current.keywords || '')}" maxlength="200"></label>
-      <button class="btn primary" type="submit">Enregistrer les propriétés</button></form>`;
+      <label class="field" title="Nom du document"><span lang="mos">${esc(t('bs_docnom', 'Nom du document'))}</span><input id="p-title" value="${esc(current.title)}" maxlength="120" required></label>
+      <label class="field" title="Auteur"><span lang="mos">${esc(t('bs_auteur', 'Auteur'))}</span><input id="p-author" value="${esc(current.author || '')}" maxlength="120"></label>
+      <label class="field" title="Sujet"><span lang="mos">${esc(t('bs_sujet', 'Sujet'))}</span><input id="p-subject" value="${esc(current.subject || '')}" maxlength="200"></label>
+      <label class="field" title="Mots-clés"><span lang="mos">${esc(t('bs_motscles', 'Mots-clés'))}</span><input id="p-keywords" value="${esc(current.keywords || '')}" maxlength="200"></label>
+      <button class="btn primary" type="submit" title="Enregistrer les propriétés" lang="mos">${esc(mo('save'))}</button></form>`;
     $('#propsform').onsubmit = e => {
       e.preventDefault();
       const t = $('#p-title').value.trim();
@@ -1872,37 +1972,34 @@ function renderBackstage() {
       saveNow(false); toast('Propriétés enregistrées.');
     };
   } else if (bsSection === 'proof') {
-    m.innerHTML = `<h2>${esc(mo('proofing'))}</h2><p class="sub">Vérification et langue</p>
-    <div class="card"><h3>Langue du document</h3>
+    m.innerHTML = `${h2(mo('proofing'), 'Vérification et langue')}
+    <div class="card">${h3(t('bs_doclang', 'Langue du document'), 'Langue du document')}
       <label class="switch"><input type="radio" name="lg" value="mos" ${S.lang === 'mos' ? 'checked' : ''}> Mooré (Burkina Faso)</label>
       <label class="switch"><input type="radio" name="lg" value="fr" ${S.lang === 'fr' ? 'checked' : ''}> Français (France)</label></div>
-    <div class="card"><h3>Orthographe</h3>
+    <div class="card">${h3(mo('proofing'), 'Orthographe')}
       <label class="switch"><input type="checkbox" id="bs-spell" ${S.spell ? 'checked' : ''}> Souligner les fautes d’orthographe</label>
       <p class="muted">Les navigateurs ne proposent pas de dictionnaire mooré : laissez cette option désactivée pour un texte en mooré.</p></div>`;
     $$('input[name=lg]', m).forEach(r => r.onchange = () => { S.lang = r.value; settingsChanged(); });
     $('#bs-spell').onchange = e => { S.spell = e.target.checked; settingsChanged(); };
   } else if (bsSection === 'protect') {
-    m.innerHTML = `<h2>Protection</h2><p class="sub">Protéger le document</p>
-    <div class="card"><h3>Lecture seule</h3><label class="switch"><input type="checkbox" id="bs-ro" ${readOnly ? 'checked' : ''}> Empêcher les modifications accidentelles</label>
+    m.innerHTML = `${h2(mo('readonly'), 'Protéger le document')}
+    <div class="card"><label class="switch" title="Empêcher les modifications accidentelles"><input type="checkbox" id="bs-ro" ${readOnly ? 'checked' : ''}> <span lang="mos">${esc(mo('readonly'))}</span></label>
     <p class="muted">Le document reste lisible, imprimable et exportable.</p></div>`;
     $('#bs-ro').onchange = e => setReadOnly(e.target.checked);
   } else if (bsSection === 'manage') {
     const list = Object.values(docs).sort((a, b) => b.modified - a.modified);
-    m.innerHTML = `<h2>Gestion</h2><p class="sub">Enregistrer, exporter, imprimer</p>
-    <div class="card"><h3>Fichier</h3><div class="quick">
-      <button data-run="newdoc"><b>Nouveau</b><small>Document vierge</small></button>
-      <button data-run="open"><b>Ouvrir</b><small>Fichier .html ou .txt</small></button>
-      <button data-run="save"><b>${esc(mo('save'))}</b><small>Enregistrer</small></button>
-      <button data-run="saveas"><b>${esc(mo('saveas'))}</b><small>Enregistrer sous (.html)</small></button>
-      <button data-run="export"><b>${esc(mo('export'))}</b><small>Exporter en HTML</small></button>
-      <button data-run="exportdoc"><b>Word</b><small>Exporter pour Word (.doc)</small></button>
-      <button data-run="print"><b>${esc(mo('print'))}</b><small>Imprimer</small></button></div></div>
-    <div class="card"><h3>Documents enregistrés dans ce navigateur</h3><ul class="doclist">${list.map(d => `
-      <li><span class="t"><b>${esc(d.title)}</b><small class="muted">Modifié le ${fmtDate(d.modified)}</small></span>
-      ${d.id === current.id ? '<span class="muted">Ouvert</span>' : `<button class="btn" data-opendoc="${d.id}">Ouvrir</button>`}
-      <button class="btn danger" data-deldoc="${d.id}">Supprimer</button></li>`).join('')}</ul></div>`;
+    m.innerHTML = `${h2(t('bs_manage', 'Gestion'), 'Enregistrer, exporter, imprimer')}
+    <div class="card">${h3(mo('m_file'), 'Fichier')}<div class="quick">
+      ${qb('newdoc', mo('newdoc'), 'Nouveau document')}${qb('open', mo('open'), 'Ouvrir un fichier .html ou .txt')}
+      ${qb('save', mo('save'), 'Enregistrer')}${qb('saveas', mo('saveas'), 'Enregistrer sous (.html)')}
+      ${qb('export', mo('export'), 'Exporter en HTML')}${qb('exportdoc', mo('export') + ' · Word', 'Exporter pour Word (.doc)')}
+      ${qb('print', mo('print'), 'Imprimer')}</div></div>
+    <div class="card">${h3(t('ui_enregistre', 'Enregistré dans ce navigateur'), 'Documents enregistrés dans ce navigateur')}<ul class="doclist">${list.map(d => `
+      <li><span class="t"><b>${esc(d.title)}</b><small class="muted" title="Modifié le"><span lang="mos">${esc(mo('word:modification'))}</span> : ${fmtDate(d.modified)}</small></span>
+      ${d.id === current.id ? '<span class="muted" title="Ouvert">✓</span>' : `<button class="btn" data-opendoc="${d.id}" title="Ouvrir" lang="mos">${esc(mo('open'))}</button>`}
+      <button class="btn danger" data-deldoc="${d.id}" title="Supprimer" lang="mos">${esc(t('bs_suppr', 'Supprimer'))}</button></li>`).join('')}</ul></div>`;
   } else {
-    m.innerHTML = `<h2>Gom-biisi</h2><p class="sub">À propos du logiciel</p>
+    m.innerHTML = `${h2(mo('c_a_propos_de_gom_biisi') || 'Gom-biisi', 'À propos du logiciel')}
     <div class="card"><h3>Traitement de texte en mooré</h3>
       <p>Gom-biisi est un traitement de texte léger dont l’interface est en mooré, la langue la plus parlée au Burkina Faso. Chaque bouton montre, au survol, son libellé mooré et son équivalent français.</p>
       <p>Les documents sont enregistrés automatiquement dans ce navigateur. Pour les conserver ailleurs ou les envoyer, utilisez « ${esc(mo('saveas'))} » (fichier .html) ou l’export pour Word.</p>
@@ -2115,7 +2212,7 @@ function statsDialog() {
     <dt>Paragraphes</dt><dd>${nf.format(c.paras)}</dd><dt>Images et tableaux</dt><dd>${c.objects}</dd></dl>`, [{ label: 'Fermer', primary: true }]);
 }
 function languageDialog() {
-  dialog(`${mo('proofing')} — Langue`, `<label class="switch"><input type="radio" name="dl" value="mos" ${S.lang === 'mos' ? 'checked' : ''}> Mooré (Burkina Faso)</label><label class="switch"><input type="radio" name="dl" value="fr" ${S.lang === 'fr' ? 'checked' : ''}> Français (France)</label>`, [
+  dialog(`${mo('language')} — Langue`, `<label class="switch"><input type="radio" name="dl" value="mos" ${S.lang === 'mos' ? 'checked' : ''}> Mooré (Burkina Faso)</label><label class="switch"><input type="radio" name="dl" value="fr" ${S.lang === 'fr' ? 'checked' : ''}> Français (France)</label>`, [
     { label: 'Annuler' }, { label: 'Appliquer', primary: true, run: () => { const v = $('input[name=dl]:checked').value; S.lang = v; settingsChanged(); } },
   ]);
 }
@@ -2324,6 +2421,14 @@ function toast(msg) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3400);
 }
 function insertPageBreak() { exec('insertHTML', '<hr class="gb-saut"><p><br></p>'); }
+function tagLang(root = document) {
+  // Les libellés mooré sont balisés lang="mos" (ISO 639-3) pour les lecteurs d'écran et la césure.
+  const all = new Set(GLOSSARY.flatMap(g => [mo(g.k), g.mo, g.std]).filter(Boolean));
+  root.querySelectorAll('#menubar .mb, #tabs .tab, #ribbon .cap, #ribbon [data-lbl], #ribbon .rb span, .sty .lb, .menu .only, .navtabs button, #nav header span, #sharebtn span, #navbody .gl .mo').forEach(el => {
+    const t = el.textContent.replace(/ · .*$/, '').trim();
+    if (all.has(t)) el.lang = 'mos'; else el.removeAttribute('lang');
+  });
+}
 function staticLabels() {
   $('#nav header span').textContent = mo(C.navpane.k) || C.navpane.fr;
   [['titres', 'Titres'], ['resultats', 'Résultats'], ['glossaire', 'Glossaire']].forEach(([id, fr]) => { const b = $(`[data-nt="${id}"]`); b.textContent = t('ui_' + id, fr); b.title = fr; });
@@ -2331,7 +2436,7 @@ function staticLabels() {
   $('#sharebtn [data-k]').textContent = mo('share') || 'Partager';
 }
 function relabel() {
-  staticLabels(); updateStatus();
+  staticLabels(); updateStatus(); tagLang();
   const wasBs = !$('#backstage').hidden;
   buildMenubar(); buildRibbon(); buildTabs(); tick();
   $$('[data-k]').forEach(el => { el.textContent = mo(el.dataset.k) || el.textContent; });
@@ -2377,7 +2482,7 @@ $('#st-zval').onclick = () => { ui.fit = null; setZoom(100); };
 $('#zoomrange').oninput = e => { ui.fit = null; setZoom(+e.target.value); };
 
 $('#ribbon').addEventListener('change', e => {
-  if (e.target.id === 'fontname') { exec('styleWithCSS', true); exec('fontName', e.target.value); }
+  if (e.target.id === 'fontname') { const f = e.target.value; exec('styleWithCSS', true); exec('fontName', fontStack(f)); }  // valeur lue avant exec : refreshState remet la liste sur la police courante
   if (e.target.id === 'fontsize') { const v = parseFloat(String(e.target.value).replace(',', '.')); if (v > 0) setFontSize(v); else toast('Indiquez une taille valide, par exemple 12.'); }
 });
 $('#ribbon').addEventListener('keydown', e => { if (e.target.id === 'fontsize' && e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
@@ -2456,7 +2561,8 @@ window.addEventListener('beforeunload', () => { if (dirty) saveNow(false); });
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawRuler);
 
 /* ---------- Démarrage ---------- */
-const SAMPLE = `<h1>Introduction</h1>
+// Ancien texte d’exemple : sert seulement à reconnaître un document de démarrage jamais modifié, pour l’ouvrir vierge.
+const OLD_SAMPLE = `<h1>Introduction</h1>
 <p style="text-align:justify;text-indent:1cm">L’extinction des langues est un phénomène mondial. Selon les études menées par l’UNESCO en 2003, une langue s’éteint tous les 14 jours. Dans le contexte des langues africaines, on constate que leur vitalité diminue au fil des années et cela est due à la mondialisation, l’urbanisation, la scolarisation dans les langues dominantes telles que le français, l’anglais, l’espagnol et les politiques linguistiques nationales. Ces phénomènes contribuent malheureusement à accélérer la disparition de nombreuses langues qui entraînent avec elles non seulement la perte du patrimoine linguistique mais aussi la perte des savoirs culturels en général. De fait, il est évident que lorsqu’une langue meurt, elle ne meurt pas seule, elle entraîne avec elle toute l’histoire qui se rattache au peuple qui la pratique. Selon la théorie de la relativité linguistique de Sapir-Whorf (1929), la langue est le découpage de la vision du monde que se fait chaque peuple du monde. En effet la langue est la dimension la plus visible, la plus parlante de la culture. Le développement d’une société est tributaire de la langue car elle permet la transmission de savoirs techniques et technologiques. Malheureusement en Afrique, ces savoirs sont généralement transmis dans d’autres langues, en l’occurrence les langues indo-européennes et le mooré ne reste pas en marge de cette déperdition. Conscient de ce fait, le Burkina Faso, dans sa nouvelle politique éducative a pris la résolution d’accorder du crédit aux langues locales, avec l’introduction de différents projets de loi au début des années 2000.</p>
 <p style="text-align:justify;text-indent:1cm">En outre, peu de travaux de description linguistique ont porté sur la terminologie dans les domaines technologiques en mooré, ce qui rend parfois la tâche difficile aux locuteurs quant à l’expression de certains besoins communicationnels. Cela a pour conséquence de retarder la transmission des savoirs scientifiques dans les sphères éducatives. Parlant du domaine de la santé, Hien Amélie dira : « De plus en plus de travaux s’effectuent en terminologie des langues africaines mais, à notre connaissance, très peu d’entre eux ont proposé une méthode et aucun ne décrit, dans le domaine de la santé. »</p>
 <h2>Quelques termes de l’interface en mooré</h2>
@@ -2464,7 +2570,7 @@ const SAMPLE = `<h1>Introduction</h1>
 <p>Survolez un bouton du ruban pour voir son nom en mooré et son équivalent français. Ce texte d’exemple peut être effacé librement.</p>`;
 
 function boot() {
-  buildMenubar(); buildRibbon(); buildTabs(); staticLabels(); tick();
+  buildMenubar(); buildRibbon(); buildTabs(); staticLabels(); tagLang(); tick();
   setInterval(tick, 20000);
   document.execCommand('styleWithCSS', false, true);
   document.execCommand('defaultParagraphSeparator', false, 'p');
@@ -2474,8 +2580,12 @@ function boot() {
     const list = Object.values(docs).sort((a, b) => b.modified - a.modified);
     d = list[0];
   }
+  const textOf = h => { const t = document.createElement('template'); t.innerHTML = h || ''; return t.content.textContent.replace(/\s+/g, ' ').trim(); };
+  if (d && textOf(d.html) === textOf(OLD_SAMPLE)) d.html = '<p><br></p>';
+  // Police par défaut passée à Noto Sans (toutes les lettres mooré) : un document encore vide la prend aussi.
+  if (d && !textOf(d.html) && d.settings && d.settings.font === 'Times New Roman') d.settings.font = 'Noto Sans';
   if (!d) {
-    d = { id: uid(), title: 'Kíbárè kʋdʋ', author: '', subject: '', keywords: '', html: SAMPLE, created: Date.now(), modified: Date.now(), settings: { ...DEFAULT_SETTINGS } };
+    d = { id: uid(), title: 'Kíbárè kʋdʋ', author: '', subject: '', keywords: '', html: '<p><br></p>', created: Date.now(), modified: Date.now(), settings: { ...DEFAULT_SETTINGS } };
     docs[d.id] = d;
   }
   applyUi();
@@ -2485,6 +2595,7 @@ function boot() {
   if (ui.zoom && !small && !ui.fit) setZoom(ui.zoom);
   else fitZoom(small ? 'width' : (ui.fit || ((work.clientWidth - 60) / (2 * geom().pw + GAP) >= 0.55 ? 'two' : 'width')));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { layout(); });
+  if (!textOf(d.html)) { try { doc.focus({ preventScroll: true }); } catch (e) {} }
 }
 boot();
 })();
