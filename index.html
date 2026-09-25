@@ -1,0 +1,2493 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gom-biisi</title>
+<meta name="description" content="Gom-biisi : traitement de texte léger avec interface en mooré (Burkina Faso).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+<style>
+:root{
+  --chrome:#2b579a; --chrome-2:#244b85; --chrome-ink:#ffffff; --chrome-ink-2:#dce6f4;
+  --file:#1e6e45; --file-2:#185a38;
+  --ribbon:#f5f5f4; --ribbon-line:#dcdcd9; --ribbon-ink:#262626; --ribbon-ink-2:#5c5c5c;
+  --hover:#e4e8ef; --active:#cfdcef; --active-line:#7a9cd3;
+  --menubar:#f8f8f7; --menubar-ink:#1f1f1f;
+  --work:#e9e9e7; --status:#f3f3f2; --status-ink:#444;
+  --pane:#fbfbfa; --pane-line:#e0e0dd;
+  --page:#ffffff; --page-ink:#111111; --page-shadow:0 1px 3px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.04);
+  --accent:#2b579a; --accent-ink:#fff; --gold:#a8660b;
+  --dialog:#ffffff; --dialog-ink:#1c1c1c; --scrim:rgba(20,24,32,.42);
+  --hl-find:#ffe066; --hl-current:#ff9f40;
+  --ui:'Noto Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+  --docfont:'Times New Roman',Tinos,'Noto Serif',serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --chrome:#1d3a66; --chrome-2:#18304f; --chrome-ink:#f2f5fa; --chrome-ink-2:#b9c7de;
+    --file:#1b5c3b; --file-2:#154a2f;
+    --ribbon:#262626; --ribbon-line:#3a3a3a; --ribbon-ink:#ececec; --ribbon-ink-2:#a8a8a8;
+    --hover:#34383f; --active:#2f4260; --active-line:#5c82c0;
+    --menubar:#1c1c1c; --menubar-ink:#e8e8e8;
+    --work:#141414; --status:#1f1f1f; --status-ink:#c4c4c4;
+    --pane:#1f1f1f; --pane-line:#353535;
+    --page-shadow:0 1px 4px rgba(0,0,0,.6);
+    --accent:#5c8ad6; --accent-ink:#0b1320; --gold:#e0a650;
+    --dialog:#262626; --dialog-ink:#eee; --scrim:rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --chrome:#1d3a66; --chrome-2:#18304f; --chrome-ink:#f2f5fa; --chrome-ink-2:#b9c7de;
+  --file:#1b5c3b; --file-2:#154a2f;
+  --ribbon:#262626; --ribbon-line:#3a3a3a; --ribbon-ink:#ececec; --ribbon-ink-2:#a8a8a8;
+  --hover:#34383f; --active:#2f4260; --active-line:#5c82c0;
+  --menubar:#1c1c1c; --menubar-ink:#e8e8e8;
+  --work:#141414; --status:#1f1f1f; --status-ink:#c4c4c4;
+  --pane:#1f1f1f; --pane-line:#353535;
+  --page-shadow:0 1px 4px rgba(0,0,0,.6);
+  --accent:#5c8ad6; --accent-ink:#0b1320; --gold:#e0a650;
+  --dialog:#262626; --dialog-ink:#eee; --scrim:rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--work);color:var(--ribbon-ink);font:13px/1.35 var(--ui);overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+#app{display:grid;grid-template-rows:auto auto auto auto 1fr auto;grid-template-columns:minmax(0,1fr);height:100%}
+
+/* Barre de menus */
+#menubar{display:flex;align-items:center;gap:2px;background:var(--menubar);color:var(--menubar-ink);padding:2px 10px;border-bottom:1px solid var(--ribbon-line);white-space:nowrap;overflow-x:auto;scrollbar-width:none}
+#menubar::-webkit-scrollbar{display:none}
+#menubar .mb{border:0;background:none;padding:4px 8px;border-radius:5px}
+#menubar .mb:hover,#menubar .mb[aria-expanded="true"]{background:var(--hover)}
+#menubar .mb.brand{font-weight:700}
+#clock{margin-left:auto;padding-left:16px;color:var(--ribbon-ink-2);font-variant-numeric:tabular-nums}
+
+/* Barre de titre */
+#titlebar{display:flex;align-items:center;gap:6px;background:var(--chrome);color:var(--chrome-ink);padding:5px 10px;min-height:40px}
+.tb{display:inline-flex;align-items:center;justify-content:center;border:0;background:none;color:inherit;width:30px;height:30px;border-radius:5px}
+.tb:hover{background:rgba(255,255,255,.14)}
+.tb[aria-pressed="true"]{background:rgba(255,255,255,.22)}
+#doctitle{flex:1;display:flex;justify-content:center;min-width:0}
+#doctitle button{border:0;background:none;color:inherit;font-weight:600;display:flex;align-items:center;gap:7px;padding:4px 10px;border-radius:5px;max-width:100%;overflow:hidden}
+#doctitle button:hover{background:rgba(255,255,255,.14)}
+#doctitle .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.docico{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:3px;background:#fff;color:var(--chrome);font:700 10px var(--ui);flex:none}
+#searchwrap{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.16);border-radius:6px;padding:0 6px;height:30px;width:min(330px,34vw)}
+#searchwrap input{background:none;border:0;outline:0;color:var(--chrome-ink);width:100%;min-width:70px}
+#searchwrap input::placeholder{color:var(--chrome-ink-2)}
+#searchnav{display:flex;align-items:center;gap:2px;color:var(--chrome-ink-2);font-variant-numeric:tabular-nums}
+#searchcount{min-width:30px;text-align:center}
+#sharebtn{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:inherit;padding:5px 10px;border-radius:5px}
+#sharebtn:hover{background:rgba(255,255,255,.14)}
+
+/* Onglets */
+#tabs{display:flex;align-items:flex-end;gap:2px;background:var(--chrome);padding:0 10px;overflow-x:auto;scrollbar-width:none}
+#tabs::-webkit-scrollbar{display:none}
+.tab{border:0;background:none;color:var(--chrome-ink);padding:7px 13px 8px;border-radius:6px 6px 0 0;white-space:nowrap;font-weight:500}
+.tab:hover{background:rgba(255,255,255,.12)}
+.tab[aria-selected="true"]{background:var(--ribbon);color:var(--accent);font-weight:600}
+.tab.file{background:var(--file);color:#fff;font-weight:700;letter-spacing:.04em;margin-right:4px}
+.tab.file:hover{background:var(--file-2)}
+#ribbontoggle{margin-left:auto;align-self:center}
+
+/* Ruban */
+#ribbon{background:var(--ribbon);border-bottom:1px solid var(--ribbon-line);overflow-x:auto;scrollbar-width:thin}
+#ribbon.collapsed{display:none}
+.panel{display:flex;align-items:stretch;min-height:92px;padding:6px 8px 4px;width:max-content}
+.panel[hidden]{display:none}
+.grp{display:flex;flex-direction:column;padding:0 8px;border-right:1px solid var(--ribbon-line)}
+.grp:last-child{border-right:0}
+.grp .body{display:flex;align-items:center;gap:6px;flex:1}
+.grp .cap{text-align:center;color:var(--ribbon-ink-2);font-size:11px;padding-top:3px;white-space:nowrap}
+.rows{display:flex;flex-direction:column;gap:5px}
+.row{display:flex;align-items:center;gap:3px}
+.seg{display:inline-flex;border:1px solid var(--ribbon-line);border-radius:5px;background:var(--ribbon)}
+.ortho{display:flex;margin:0 0 10px}.ortho button{flex:1;border:0;background:none;padding:5px 6px;font-size:12px;color:inherit;border-radius:4px}.ortho button[aria-pressed="true"]{background:var(--active);font-weight:600}
+.seg>.rb{border-radius:0}
+.seg>.rb:first-child{border-radius:4px 0 0 4px}
+.seg>.rb:last-child{border-radius:0 4px 4px 0}
+.rb{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:28px;height:28px;padding:0 6px;border:1px solid transparent;border-radius:5px;background:none;color:var(--ribbon-ink);white-space:nowrap}
+.rb:hover{background:var(--hover)}
+.rb.on{background:var(--active);border-color:var(--active-line)}
+.rb.big{flex-direction:column;height:74px;min-width:54px;padding:4px 6px;gap:3px;font-size:12px}
+.rb.big svg.i{width:28px;height:28px;stroke-width:1.5}
+.rb.big .glyph{font-size:24px;line-height:28px}
+.rb .glyph{font-family:var(--docfont);font-size:15px;line-height:1}
+.rb .caret{font-size:9px;color:var(--ribbon-ink-2)}
+.rb.split{padding:0 2px 0 6px}
+.swatch{display:block;width:16px;height:3px;margin-top:1px}
+.colorbtn{display:inline-flex;flex-direction:column;align-items:center}
+select.rsel,input.rsel{height:28px;border:1px solid var(--ribbon-line);border-radius:5px;background:var(--dialog);padding:0 6px}
+#fontname{width:150px}
+#fontsize{width:58px}
+.gallery{display:flex;align-items:stretch;border:1px solid var(--ribbon-line);border-radius:5px;background:var(--dialog);overflow:hidden}
+.sty{display:flex;flex-direction:column;align-items:center;justify-content:space-between;border:0;border-right:1px solid var(--ribbon-line);background:none;width:74px;height:66px;padding:6px 3px 4px;color:var(--ribbon-ink)}
+.sty:last-child{border-right:0}
+.sty:hover{background:var(--hover)}
+.sty.on{outline:2px solid var(--active-line);outline-offset:-2px;background:var(--active)}
+.sty .pv{font-family:var(--docfont);white-space:nowrap;overflow:hidden;max-width:100%}
+.sty .lb{font-size:11px;color:var(--ribbon-ink-2);white-space:nowrap;overflow:hidden;max-width:100%}
+.note{align-self:center;max-width:340px;color:var(--ribbon-ink-2);padding:0 12px}
+
+/* Zone principale */
+#main{position:relative;display:flex;min-height:0}
+#nav{width:280px;flex:none;background:var(--pane);border-right:1px solid var(--pane-line);display:flex;flex-direction:column;min-height:0}
+#nav[hidden]{display:none}
+#nav header{display:flex;align-items:center;justify-content:space-between;padding:12px 12px 8px;font-weight:600;font-size:14px}
+.navtabs{display:grid;grid-template-columns:repeat(3,1fr);margin:0 12px 10px;border:1px solid var(--pane-line);border-radius:6px;overflow:hidden}
+.navtabs button{border:0;background:none;padding:6px 4px}
+.navtabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+#navbody{flex:1;overflow:auto;padding:0 12px 12px}
+.navlist{list-style:none;margin:0;padding:0}
+.navlist button{display:block;width:100%;text-align:left;border:0;background:none;padding:6px 8px;border-radius:5px}
+.navlist button:hover{background:var(--hover)}
+.navlist .h2{padding-left:20px}
+.navlist .h3{padding-left:32px}
+.muted{color:var(--ribbon-ink-2)}
+.gl{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;padding:7px 8px;border-radius:6px}
+.gl:hover{background:var(--hover)}
+.gl .mo{font-weight:600}
+.gl .fr{grid-column:1;color:var(--ribbon-ink-2);font-size:12px}
+.glcat{margin:14px 8px 4px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ribbon-ink-2)}
+.gl .acts{grid-row:1/span 2;grid-column:2;display:flex;gap:2px;opacity:.25}
+.gl:hover .acts,.gl:focus-within .acts{opacity:1}
+.res{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 8px;border-radius:6px;line-height:1.45}
+.res:hover{background:var(--hover)}
+.res mark{background:var(--hl-find);color:#000}
+#glfilter{width:100%;height:30px;border:1px solid var(--pane-line);border-radius:6px;background:var(--dialog);padding:0 8px;margin-bottom:8px}
+
+#work{position:relative;flex:1;overflow:auto;min-width:0}
+#zoomer{padding:18px 28px 40px;width:max-content;min-width:100%}
+#ruler{position:sticky;top:0;z-index:3;height:22px;margin:0 auto 10px}
+#ruler canvas{display:block}
+#pages{position:relative;margin:0 auto}
+#sheets{position:absolute;inset:0;pointer-events:none}
+.sheet{position:absolute;top:0;background:var(--page);box-shadow:var(--page-shadow)}
+.sheet .hdr,.sheet .ftr{position:absolute;left:0;right:0;text-align:center;font:11px var(--docfont);color:#8a8a8a}
+.sheet .hdr{top:34px}
+.sheet .ftr{bottom:30px}
+#doc{position:relative;z-index:1;outline:0;color:var(--page-ink);font:12pt/1.5 var(--docfont);column-fill:auto;box-sizing:content-box;overflow:hidden;caret-color:#000;text-align:left;word-wrap:break-word;hyphens:manual}
+#doc.ro{caret-color:transparent}
+#doc>*:first-child{margin-top:0}
+#doc p{margin:0 0 8pt}
+#doc p.gb-nospace{margin:0}
+#doc.spacing-none p{margin:0}
+#doc.spacing-wide p{margin:0 0 14pt}
+#doc h1{font-size:14pt;font-weight:700;text-align:center;text-transform:uppercase;margin:6pt 0 12pt;break-after:avoid}
+#doc h1.gb-title{font-size:24pt;text-transform:none;font-weight:400;letter-spacing:.01em;border-bottom:1px solid #9bb0d0;padding-bottom:4pt;text-align:left}
+#doc h2{font-size:13pt;font-weight:700;margin:12pt 0 6pt;break-after:avoid;color:#1f3864}
+#doc h3{font-size:12pt;font-weight:700;font-style:italic;margin:10pt 0 4pt;break-after:avoid}
+#doc p.gb-subtitle{font-size:13pt;color:#5a5a5a;font-style:italic}
+#doc blockquote{margin:6pt 1cm 10pt;font-style:italic;color:#333;border-left:3px solid #c7d3e6;padding-left:10pt}
+#doc ul,#doc ol{margin:0 0 8pt;padding-left:1.1cm}
+#doc table{border-collapse:collapse;width:100%;margin:6pt 0 10pt;break-inside:avoid}
+#doc td,#doc th{border:1px solid #777;padding:3pt 6pt;vertical-align:top;min-width:1.5cm}
+#doc th{background:#eef2f8}
+#doc img{max-width:100%;height:auto;break-inside:avoid}
+#doc img.gb-selimg{outline:2px solid #2b579a;outline-offset:2px}
+#doc a{color:#1a4f9c}
+#doc hr.gb-saut{border:0;border-top:1px dashed transparent;height:0;margin:0;break-after:column}
+#doc.show-marks hr.gb-saut{border-top-color:#8aa;height:1px}
+#doc.show-marks p::after,#doc.show-marks h1::after,#doc.show-marks h2::after,#doc.show-marks h3::after,#doc.show-marks li::after{content:"¶";color:#7c9bbd;font-weight:400;margin-left:2px}
+#doc .gb-comment{background:#fff2b3;border-bottom:2px solid #e3b400;cursor:help}
+#doc sup.gb-fnref{color:#1a4f9c;font-size:.7em}
+#doc .gb-footnotes{border-top:1px solid #999;margin-top:14pt;padding-top:6pt;font-size:10pt;width:45%;min-width:5cm}
+#doc .gb-footnotes p{margin:0 0 3pt}
+#doc p.gb-caption{font-size:10pt;font-style:italic;text-align:center;color:#333}
+#doc .gb-textbox{border:1px solid #6b7c93;padding:6pt 8pt;margin:6pt 0 10pt;break-inside:avoid}
+#doc .gb-eq{font-family:'Cambria Math','Tinos',serif;font-style:italic;padding:0 2px;background:#f2f5fb}
+#doc .gb-toc{border:1px solid #d9e0ea;padding:8pt 10pt;margin:0 0 12pt;cursor:pointer;break-inside:avoid}
+#doc .gb-toc .t{font-weight:700;margin-bottom:6pt}
+#doc .gb-toc .e{display:flex;gap:6px}
+#doc .gb-toc .e .d{flex:1;border-bottom:1px dotted #888;transform:translateY(-4px)}
+#doc .gb-toc .e.l2{padding-left:14pt}
+#doc .gb-toc .e.l3{padding-left:28pt}
+::highlight(gb-find){background-color:var(--hl-find);color:#000}
+::highlight(gb-current){background-color:var(--hl-current);color:#000}
+
+#imgbar{position:absolute;z-index:6;display:flex;gap:2px;background:var(--dialog);color:var(--dialog-ink);border:1px solid var(--ribbon-line);border-radius:7px;box-shadow:0 6px 18px rgba(0,0,0,.18);padding:3px}
+#imgbar[hidden]{display:none}
+
+/* Coulisses KÍBÁRÈ */
+#backstage{position:absolute;inset:0;z-index:20;display:flex;background:var(--work)}
+#backstage[hidden]{display:none}
+#bsnav{width:230px;flex:none;background:var(--file);color:#fff;display:flex;flex-direction:column;padding:16px 0;overflow:auto}
+#bsnav .back{border:0;background:none;color:#fff;text-align:left;padding:6px 18px;opacity:.9}
+#bsnav .back:hover{opacity:1;text-decoration:underline}
+#bsnav .brand{padding:14px 18px 14px}
+#bsnav .brand b{display:block;font-size:17px;letter-spacing:.03em}
+#bsnav .brand small{opacity:.8}
+.bsitem{display:block;width:100%;border:0;background:none;color:#fff;text-align:left;padding:9px 18px}
+.bsitem b{display:block;font-weight:600}
+.bsitem small{opacity:.8;font-size:11px}
+.bsitem:hover{background:rgba(255,255,255,.1)}
+.bsitem[aria-current="true"]{background:rgba(255,255,255,.18)}
+#bsnav hr{border:0;border-top:1px solid rgba(255,255,255,.25);margin:10px 18px}
+#bsmain{flex:1;overflow:auto;padding:26px 30px;color:var(--ribbon-ink)}
+#bsmain h2{margin:0;font-size:24px;font-weight:600;text-wrap:balance}
+#bsmain .sub{color:var(--ribbon-ink-2);margin:4px 0 20px}
+.card{background:var(--dialog);border:1px solid var(--ribbon-line);border-radius:10px;padding:16px 18px;max-width:780px;margin-bottom:16px}
+.card h3{margin:0 0 10px;font-size:14px;color:var(--file)}
+:root[data-theme="dark"] .card h3{color:#6fcf9b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .card h3{color:#6fcf9b}}
+.kv{display:grid;grid-template-columns:170px 1fr;gap:6px 14px;font-variant-numeric:tabular-nums}
+.kv dt{color:var(--ribbon-ink-2)}
+.kv dd{margin:0}
+.quick{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.quick button{border:1px solid var(--ribbon-line);background:var(--dialog);border-radius:8px;padding:10px 12px;text-align:left}
+.quick button:hover{border-color:var(--active-line);background:var(--hover)}
+.quick b{display:block;font-weight:600}
+.quick small{color:var(--ribbon-ink-2)}
+.field{display:grid;gap:4px;margin-bottom:12px}
+.field input,.field textarea,.field select{border:1px solid var(--ribbon-line);border-radius:6px;background:var(--dialog);padding:7px 9px}
+.doclist{list-style:none;padding:0;margin:0}
+.doclist li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--ribbon-line)}
+.doclist li:last-child{border-bottom:0}
+.doclist .t{flex:1;min-width:0}
+.doclist .t b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn{border:1px solid var(--ribbon-line);background:var(--dialog);border-radius:6px;padding:6px 12px}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:#b3261e}
+.switch{display:flex;align-items:center;gap:8px;margin:6px 0}
+
+/* Barre d'état */
+#status{display:flex;align-items:center;gap:14px;background:var(--status);color:var(--status-ink);border-top:1px solid var(--ribbon-line);padding:3px 12px calc(3px + env(safe-area-inset-bottom,0px));white-space:nowrap;overflow-x:auto;scrollbar-width:none;font-variant-numeric:tabular-nums;font-size:12px}
+#status::-webkit-scrollbar{display:none}
+#status .sp{margin-left:auto}
+#status button.sb{border:0;background:none;padding:3px 5px;border-radius:4px;display:inline-flex;align-items:center;gap:5px}
+#status button.sb:hover{background:var(--hover)}
+#status button.sb.on{background:var(--active)}
+#zoomrange{width:110px;accent-color:var(--accent)}
+#savestate.dirty{color:var(--gold)}
+
+/* Menus déroulants, bulles, dialogues */
+.menu{position:fixed;z-index:50;min-width:250px;background:var(--dialog);color:var(--dialog-ink);border:1px solid var(--ribbon-line);border-radius:9px;box-shadow:0 12px 32px rgba(0,0,0,.2);padding:5px;max-height:80vh;overflow:auto}
+.menu button{display:flex;align-items:baseline;gap:10px;width:100%;border:0;background:none;text-align:left;padding:6px 12px;border-radius:5px}
+.menu button:hover,.menu button:focus-visible{background:var(--hover);outline:0}
+.menu .mo{font-weight:500}
+.menu .fr{color:var(--ribbon-ink-2);font-size:11.5px;margin-left:auto;padding-left:12px}
+.menu .only{flex:1}
+.menu hr{border:0;border-top:1px solid var(--ribbon-line);margin:5px 4px}
+.menu .chk::before{content:"✓";display:inline-block;width:14px}
+.menu .unchk::before{content:"";display:inline-block;width:14px}
+.pal{display:grid;grid-template-columns:repeat(7,22px);gap:5px;padding:8px}
+.pal button{width:22px;height:22px;padding:0;border:1px solid rgba(0,0,0,.25);border-radius:4px}
+#tip{position:fixed;z-index:60;max-width:290px;background:var(--dialog);color:var(--dialog-ink);border:1px solid var(--ribbon-line);border-radius:9px;box-shadow:0 10px 26px rgba(0,0,0,.18);padding:10px 12px;pointer-events:none;font-size:12px;line-height:1.45}
+#tip[hidden]{display:none}
+#tip b{display:block;font-size:13px;margin-bottom:3px}
+#tip .mo{color:var(--gold);font-weight:700}
+#tip .g{border-top:1px dashed var(--ribbon-line);margin-top:7px;padding-top:6px;color:var(--ribbon-ink-2)}
+#tip .g b{display:inline;font-size:12px;color:var(--gold)}
+#scrim{position:fixed;inset:0;z-index:70;background:var(--scrim);display:grid;place-items:center;padding:16px}
+#scrim[hidden]{display:none}
+.dlg{background:var(--dialog);color:var(--dialog-ink);border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.3);width:min(460px,100%);max-height:88vh;display:flex;flex-direction:column}
+.dlg h2{margin:0;padding:16px 18px 6px;font-size:16px}
+.dlg .db{padding:6px 18px 12px;overflow:auto}
+.dlg .da{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px 16px;border-top:1px solid var(--ribbon-line)}
+.chars{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:5px}
+.chars button{height:38px;border:1px solid var(--ribbon-line);border-radius:6px;background:var(--dialog);font:18px var(--docfont)}
+.chars button:hover{background:var(--hover)}
+.tgrid{display:grid;grid-template-columns:repeat(8,22px);gap:3px;margin:6px 0}
+.tgrid span{width:22px;height:22px;border:1px solid var(--ribbon-line);border-radius:3px}
+.tgrid span.on{background:var(--active);border-color:var(--active-line)}
+#toast{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);z-index:80;background:#222;color:#fff;padding:8px 14px;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.25);max-width:calc(100% - 32px)}
+#toast[hidden]{display:none}
+textarea.code{width:100%;height:180px;font:12px ui-monospace,monospace}
+
+@media (max-width:760px){
+  #searchwrap{width:auto;flex:1;min-width:0}
+  #searchwrap input{min-width:0}
+  #q-print,#q-ro{display:none}
+  #doctitle{display:none}
+  #sharebtn span:not(#shareico){display:none}
+  #nav{position:absolute;z-index:8;inset:0 auto 0 0;width:min(300px,86vw);box-shadow:6px 0 24px rgba(0,0,0,.2)}
+  #zoomer{padding:12px 12px 30px}
+  #bsnav{width:170px}
+  #bsmain{padding:18px 16px}
+  .kv{grid-template-columns:1fr}
+  .kv dd{margin-bottom:6px}
+  #status .hide-sm{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+@media print{
+  @page{size:A4;margin:2.5cm}
+  body{overflow:visible;background:#fff}
+  #app{display:block;height:auto}
+  #menubar,#titlebar,#tabs,#ribbon,#nav,#status,#ruler,#sheets,#backstage,#imgbar,#tip,#toast,#scrim{display:none!important}
+  #main,#work{display:block;overflow:visible}
+  #zoomer{padding:0;zoom:1!important;width:auto}
+  #doc{columns:auto!important;column-count:auto!important;width:auto!important;height:auto!important;padding:0!important;overflow:visible}
+  #doc hr.gb-saut{break-after:page;border:0}
+  #doc .gb-comment{background:none;border:0}
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <nav id="menubar" aria-label="Menus"></nav>
+
+  <header id="titlebar">
+    <button class="tb" id="q-nav" data-tip="nav" aria-label="Volet de navigation" aria-pressed="false"></button>
+    <button class="tb" id="q-save" data-tip="save" aria-label="Enregistrer"></button>
+    <button class="tb" id="q-undo" data-tip="undo" aria-label="Annuler"></button>
+    <button class="tb" id="q-redo" data-tip="redo" aria-label="Rétablir"></button>
+    <button class="tb" id="q-print" data-tip="print" aria-label="Imprimer"></button>
+    <button class="tb" id="q-ro" data-tip="readonly" aria-label="Lecture seule" aria-pressed="false"></button>
+    <div id="doctitle"><button id="titlebtn" data-tip="rename"><span class="docico">a</span><span class="nm" id="titletext"></span></button></div>
+    <label id="searchwrap"><span id="searchico"></span><span class="sr">Rechercher dans le document</span>
+      <input id="search" type="search" placeholder="Rechercher dans le document" autocomplete="off">
+      <span id="searchnav"><button class="tb" id="s-prev" aria-label="Résultat précédent" style="width:22px;height:22px">▲</button><button class="tb" id="s-next" aria-label="Résultat suivant" style="width:22px;height:22px">▼</button><span id="searchcount"></span></span>
+    </label>
+    <button id="sharebtn" data-tip="share"><span id="shareico"></span><span data-k="share">pʋɩ</span></button>
+  </header>
+
+  <div id="tabs" role="tablist" aria-label="Onglets du ruban"></div>
+  <div id="ribbon"></div>
+
+  <div id="main">
+    <aside id="nav" hidden aria-label="Volet de navigation">
+      <header><span>Volet de navigation</span><button class="tb" id="navclose" aria-label="Fermer le volet" style="color:inherit"></button></header>
+      <div class="navtabs" role="tablist">
+        <button role="tab" data-nt="titres" aria-selected="true">Titres</button>
+        <button role="tab" data-nt="resultats" aria-selected="false">Résultats</button>
+        <button role="tab" data-nt="glossaire" aria-selected="false">Glossaire</button>
+      </div>
+      <div id="navbody"></div>
+    </aside>
+
+    <div id="work">
+      <div id="zoomer">
+        <div id="ruler"><canvas id="rulercv" height="22"></canvas></div>
+        <div id="pages">
+          <div id="sheets"></div>
+          <div id="doc" contenteditable="true" spellcheck="false" lang="fr" aria-label="Document" role="textbox" aria-multiline="true"></div>
+        </div>
+      </div>
+      <div id="imgbar" hidden></div>
+    </div>
+
+    <section id="backstage" hidden aria-label="KÍBÁRÈ">
+      <nav id="bsnav"></nav>
+      <div id="bsmain"></div>
+    </section>
+  </div>
+
+  <footer id="status">
+    <span id="st-page">Page 1 sur 1</span>
+    <span id="st-words">0 mots</span>
+    <span id="st-chars" class="hide-sm">0 caractères</span>
+    <button class="sb" id="st-lang" data-tip="language"><span id="st-langico"></span><span>Mooré (Burkina Faso)</span></button>
+    <span id="savestate" class="hide-sm"></span>
+    <span class="sp"></span>
+    <button class="sb" id="st-one" data-tip="onepage" aria-label="Une page"></button>
+    <button class="sb" id="st-two" data-tip="twopages" aria-label="Plusieurs pages"></button>
+    <button class="sb" id="st-zout" aria-label="Zoom arrière">−</button>
+    <input id="zoomrange" type="range" min="30" max="200" step="5" value="100" aria-label="Zoom">
+    <button class="sb" id="st-zin" aria-label="Zoom avant">+</button>
+    <button class="sb" id="st-zval" aria-label="Zoom à 100 %">100 %</button>
+  </footer>
+</div>
+
+<div id="tip" hidden role="tooltip"></div>
+<div id="scrim" hidden></div>
+<div id="toast" hidden role="status"></div>
+<input type="file" id="f-image" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+<input type="file" id="f-open" accept=".html,.htm,.txt,text/html,text/plain" hidden>
+<script>
+(() => {
+'use strict';
+
+/* ==========================================================================
+   Gom-biisi : traitement de texte léger, interface en mooré.
+   Un seul fichier, sans serveur. Les documents sont enregistrés dans le
+   navigateur (localStorage) et peuvent être exportés en HTML ou pour Word.
+   ========================================================================== */
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const doc = $('#doc'), work = $('#work'), zoomer = $('#zoomer'), pagesEl = $('#pages'), sheets = $('#sheets');
+const IN_FRAME = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+};
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fold = s => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+
+/* ---------- Glossaire mooré (annexes du mémoire : I. Lexique Word-Excel, II. Lexique IA) ---------- */
+// [français, mooré, clé] ; la clé relie le terme aux boutons, onglets et menus de l'interface.
+const LEX_WORD = [
+  ['étiquettes', 'bà̰dè'],
+  ['champs de fusion en surbrillance', 'bɩ̰́nr zɩ̰́ɩ̰gà'],
+  ['cellules', 'bòk kʋdsè'],
+  ['SmartArt', 'búm m mà̰à̰n sʋgà', 'smartart'],
+  ['style', 'búúdá', 'styles'],
+  ['définir par défaut', 'bʋ̰́m m pá wòtó', 'defaut'],
+  ['forme', 'bedmà̰ búúdá'],
+  ['recherche de destinataires', 'déégd bòwbò'],
+  ['coller', 'dʋgélè', 'paste'],
+  ['bibliothèque de fonctions', 'géélg búúdù'],
+  ['formules', 'géélg mánà̰ŋrè'],
+  ['audit de formules', 'géélg véésgo'],
+  ['calcul', 'géélgò'],
+  ['index', 'gʋlsr sɔ̰́ŋò gilli', 'index'],
+  ['table des matières', 'gʋlsr n tósgdḛ', 'toc'],
+  ['mise à jour de la table des matières', 'gʋlsr páálè n tósgdḛ', 'tocupdate'],
+  ['équation', 'geélgo', 'equation'],
+  ['vérification', 'gésrò', 'proofing'],
+  ['révision', 'gésrò páásgò', 't_review'],
+  ['langue', 'goám', 'language'],
+  ['gérer les sources', 'góm mánà̰ŋrè'],
+  ['coupure de mot', 'gʋlsr lébgr wàt sɩ̰́ŋrè'],
+  ['taille de la police', 'gʋlsrà bédmà̰', 'fontsize'],
+  ['disposition', 'gʋlsrò búúdá fà̰à̰'],
+  ['police', 'gʋlsro búúdù', 'font'],
+  ['interligne', 'gʋls jííb sʋkà', 'linesp'],
+  ['zone de texte', 'gʋlsro zɩ̰́ɩ̰gà', 'textbox'],
+  ['texte', 'gʋlsrò', 'writing'],
+  ['édition', 'gʋlsrò mánà̰ŋrè', 'm_edit'],
+  ['page de garde', 'gʋlsrò sɩ̰́ŋrè'],
+  ['presse-papiers', 'gúlsr tʋ́kò', 'clipboard'],
+  ['mise en page', 'gúlsrò nàanógò', 't_layout'],
+  ['position', 'jàsré'],
+  ['imprimer', 'jíís sébra zúgù', 'print'],
+  ['en-tête', 'jɩ̰́ŋr gʋlsrò', 'header'],
+  ['légendes', 'jʋʋré', 'captions'],
+  ['définir un nom', 'kis jʋʋre'],
+  ['données', 'kíbàré'],
+  ['information', 'kíbárè', 'info'],
+  ['marges', 'kɩ̰́ŋɩ̰́sà wòrólòm', 'margins'],
+  ['bordure', 'kɩ̰́ŋɩ̰́ŋà', 'borders'],
+  ['enveloppe', 'kòróg bilà'],
+  ['filtres', 'kɔ̰bg wʋsrò'],
+  ['couleur', 'kɔ̰bgò', 'color'],
+  ['reculer', 'kɛ̰́ŋ pòòré'],
+  ['avancer', 'kɛ̰́ŋ taoré'],
+  ['entrée', 'kɛ̰́ɛ̰b gómà'],
+  ['références', 'màkrè', 't_refs'],
+  ['zoom', 'mà̰ŋ bédré wàlá kidrà', 'zoom'],
+  ['comparer', 'mákè'],
+  ['organiser', 'mánà̰ŋr', 'organiser'],
+  ['thèmes', 'mánà̰ŋr sɩ̰́ŋrè', 'theme'],
+  ['modification', 'mánà̰ŋrè'],
+  ['création', 'naanogo', 't_design'],
+  ['symbole', 'nà̰ádè', 'symbol'],
+  ['insérer une légende', 'nìŋg jʋ́ʋ́ré', 'caption'],
+  ['insérer une citation', 'nìŋg ned gómdè'],
+  ['insérer une note de fin', 'nìŋg sáàb gómà'],
+  ['insérer une note de bas de page', 'nìŋg góm tɛ̰́ŋrè', 'footnote'],
+  ['insérer un fichier multimédia', 'nìŋg sʋgà bì gómdè'],
+  ['enregistrer sous', 'nɩ̰́ŋ búm pʋgà', 'saveas'],
+  ['justifier', 'nìŋg kɩ̰́ŋɩ̰́ŋà jé', 'jf'],
+  ['aligner à droite', 'nìŋg ritʋ́ŋó', 'jr'],
+  ['centrer', 'nìŋg sùká', 'jc'],
+  ['numériser', 'nɩ̰ŋg wámd pʋgà', 'numeriser'],
+  ['aligner à gauche', 'nìŋg goàbágá', 'jl'],
+  ['enregistrer', 'nɩ̰́ŋè', 'save'],
+  ['commentaires', 'nɛ́b gómdè', 'comment'],
+  ['bloc d’adresse', 'nɛ́d jìr kíbárè'],
+  ['formule d’appel', 'nɛ́d pʋʋsrò tóólè'],
+  ['habillage', 'nɛ̰́ŋg dʋgél búúdá'],
+  ['insertion', 'paasgo', 'insert'],
+  ['nouveau', 'páálè', 'newdoc'],
+  ['obtenir et transformer', 'páámè nɩ tèké', 'obtenir'],
+  ['ajouter le texte', 'páás gʋlsrà'],
+  ['augmenter le retrait', 'páás kɩ̰́ŋɩ̰́ŋgà', 'indent'],
+  ['retrait à droite', 'páás kɩ̰́ŋɩ̰́ŋà ritʋ́ŋó'],
+  ['retrait à gauche', 'páás kɩ̰́ŋɩ̰́ŋà goabágá'],
+  ['ouvrir', 'páké', 'open'],
+  ['espacement arrière', 'pòòr viùrà̰'],
+  ['trame de fond', 'pòòr nɛ̰́ŋgà', 'shading'],
+  ['partager', 'pʋɩ', 'share'],
+  ['compte', 'róógò', 'account'],
+  ['numéro de ligne', 'rúlgà sɔ̰́re'],
+  ['terminer', 'sà'],
+  ['options de la feuille', 'sébr búúdù'],
+  ['page vierge', 'sébr vʋʋrʋ'],
+  ['illustration', 'sébra nɛ̰́ŋg', 'illustrations'],
+  ['orientation', 'sébrà gà̰ágá', 'orient'],
+  ['bordure de page', 'sébrà kɩ̰́ŋɩ̰́ŋà'],
+  ['colonnes', 'sébrà kómmà'],
+  ['couleur de page', 'sébrà kɔ̰bgò', 'pagecolor'],
+  ['mise en forme du document', 'sébrà mánà̰ŋrè', 'docformat'],
+  ['arrière-plan de page', 'sébrà póórè', 'background'],
+  ['filigrane', 'sébrà póór nà̰ádè'],
+  ['saut de page', 'sébr nɩ pʋʋrdá', 'break'],
+  ['volet sélection', 'sììs nɛ̰́ɛ̰s'],
+  ['accueil', 'sɩ̰́ŋrè', 't_home'],
+  ['lien hypertexte', 'sór n rééd zɩ̰́ɩ̰gá', 'link'],
+  ['nombre', 'sɔ̰́ɔ̰rè'],
+  ['bibliographie', 'sɛ́b sḛ kàrám'],
+  ['publipostage', 'sɛ́b wʋsrò gʋlsrò', 't_mail'],
+  ['graphique', 'sʋgà búúdù'],
+  ['image', 'sʋgà', 'image'],
+  ['effet', 'sʋgà kɔ̰bgò', 'effects'],
+  ['espacement avant', 'taoor viùrà̰'],
+  ['liens', 'táp', 'links'],
+  ['renvoi', 'táp n wìnìŋ'],
+  ['modifier la liste des destinataires', 'tèk déégdè'],
+  ['aligner', 'tòmsè'],
+  ['alignement', 'tɔ̰̀ŋgré'],
+  ['trier', 'tóósè', 'sort'],
+  ['connexions', 'tɔ̰krè'],
+  ['trier et filtrer', 'tʋ̰̀ʋ̰sí nɩ jòògré', 'trierfiltrer'],
+  ['macros', 'tʋʋm wʋsrò'],
+  ['règles et aperçu des résultats', 'tʋ́úm sáàb sòré'],
+  ['sélection des destinataires', 'tʋ̰́ʋ̰s déégdè'],
+  ['table des autorités', 'tɔ̰́ɔ̰r gʋlsrò'],
+  ['pied de page', 'tɛ̰́ŋr gúlsrò', 'footer'],
+  ['note de bas de page suivante', 'tɛ̰́ŋr gómdà tó'],
+  ['outils de données', 'tʋ́ʋ́md tèèd kíbàrè'],
+  ['fenêtre', 'vɔ̰́ɔ̰rè', 'm_window'],
+  ['tableau', 'wál', 'table'],
+  ['fichier', 'wámd kíbárè', 'm_file'],
+  ['table des illustrations', 'wámd nɩ nà̰ádè', 'tableill'],
+  ['afficher', 'wɩ̰nɩ̰́ŋg', 'show'],
+  ['afficher tout', 'wɩ̰nɩ̰́ŋg fà̰à̰', 'marks'],
+  ['affichage', 'wɩ̰nɩ̰́ŋgrì', 'view'],
+  ['modes d’affichage', 'wɩ̰nɩ̰́ŋgr búúdù'],
+  ['diminuer le retrait', 'wòòr kɩ̰́ŋɩ̰́ŋà', 'outdent'],
+  ['restreindre la modification', 'wòòr mánà̰ŋrè', 'readonly'],
+  ['taille', 'wòrólòmà̰'],
+  ['puces', 'wíllà', 'ul'],
+  ['exporter', 'zá̰á̰ zɩ̰́ɩ̰́gà tó', 'export'],
+  ['démarrer la fusion', 'ɲàk sébà búúdù'],
+];
+const LEX_IA = [
+  ['blockchain', 'bà̰ŋr bɩ̰́ŋ zìiga'],
+  ['traitement du langage naturel', 'búúdà goám tìbsgó'],
+  ['code', 'gʋlsr n solge', 'code'],
+  ['reconnaissance de la parole', 'gómd bà̰ŋrè'],
+  ['génération de texte', 'gʋlsr nà̰ágògò'],
+  ['assistant virtuel', 'jaamba', 'jaamba'],
+  ['IA faible', 'jám páálè kidrà', 'iafaible'],
+  ['intelligence artificielle', 'jám páálé', 'ia'],
+  ['IA forte', 'jám páálè bédrè', 'iaforte'],
+  ['IA générative', 'jam paale n wome', 'iagen'],
+  ['test de Turing', 'jám gèsro'],
+  ['données de sortie', 'jìtg kibàrè'],
+  ['apprentissage supervisé', 'kárá̰ŋ nɩ sóré', 'apprsup'],
+  ['big data', 'kibàr bédrè'],
+  ['data', 'kibàrè'],
+  ['analyse des données', 'kibàr véèsgó'],
+  ['données d’entrée', 'kɛ̰́dg kibàrè'],
+  ['architecture', 'màkrè'],
+  ['automatisation', 'mɛ̰́ŋg tʋʋmdè'],
+  ['apprentissage automatique', 'mɛ̰́ŋ zàmsgò'],
+  ['vie artificielle', 'ninsáál vɩ̰́ɩm páálè'],
+  ['prompt', 'noore'],
+  ['série d’instructions', 'noore wʋsrò'],
+  ['robot', 'nɛ́d kutu'],
+  ['robotique', 'nɛ́d kutu kàrà̰ŋgò'],
+  ['algorithme', 'palle'],
+  ['cloud', 'sáwàt'],
+  ['programmer', 'sògólgó', 'programmer'],
+  ['reconnaissance d’images', 'sʋgà bà̰ŋgrè'],
+  ['biais', 'táògsgò'],
+  ['artefact', 'tudgri'],
+  ['vie privée', 'vɩ̰́ɩm n sólgè'],
+  ['apprentissage profond', 'zàmsgó zʋ̀lʋ̀ŋá'],
+  ['voiture intelligente', 'zɩ́rg sɔ̰̀ŋò'],
+  ['perceptron', 'zʋ̰́kɔ̰̀t kʋ́dré'],
+  ['fonctions cognitives', 'zʋ̰́kɔ̰̀tò tʋʋmdè'],
+  ['réseau de neurones', 'zʋ̰́kɔ̰̀tò bííssì sòrè'],
+  ['capteur', 'ɲɔ̰́gdà', 'capteur'],
+];
+// Termes de l'interface d'origine (captures) absents du lexique.
+const LEX_UI = [
+  ['Fichier (onglet)', 'KÍBÁRÈ', 't_file'],
+  ['Document', 'Sébrà', 'document'],
+];
+// Chapitre 4 du mémoire : décomposition, traduction littérale et interprétation sémantique.
+const NOTES = {
+  m_file: ['calebasse / information', 'information de la calebasse', 'Onglet qui permet de gérer un document : ouverture, enregistrement et impression.'],
+  info: ['information', 'information', 'Sous-onglet pour consulter et gérer les informations liées à un document.'],
+  newdoc: ['nouveau', 'nouveau', 'Sous-onglet pour créer un nouveau document, généralement vierge.'],
+  open: ['ouvrir', 'ouvrir', 'Sous-onglet pour accéder à un document déjà enregistré afin de le modifier ou de le consulter.'],
+  save: ['mettre', 'mettre', 'Élément qui permet de conserver un document sur un support numérique.'],
+  saveas: ['mettre / chose / dans', 'mettre une chose dans le ventre', 'Sous-onglet pour sauvegarder un document en le nommant, dans un autre format, sans détruire le fichier original.'],
+  print: ['faire sortir / papier / sur', 'faire sortir sur papier', 'Sous-onglet responsable de l’impression d’un document : imprimante, nombre de copies, pages à imprimer, options (recto, verso…).'],
+  share: ['partager', 'partager', 'Sous-onglet pour partager un document avec d’autres utilisateurs, par le cloud ou par courriel.'],
+  export: ['emporter / endroit / autre', 'emporter dans un autre endroit', 'Sous-onglet pour changer le format d’un document.'],
+  account: ['maison', 'maison', 'Gestion du profil de l’utilisateur et des informations de licence.'],
+  t_home: ['commencement', 'commencement', 'Onglet qui regroupe les commandes de création, de modification et de mise en forme du texte d’un document.'],
+  // Néologismes de sens : mot ayant un sens préétabli auquel on attribue un nouveau sens.
+  m_window: ['ouverture', '', '', 'Néologisme de sens'],
+  capteur: ['attrapeur', '', '', 'Néologisme de sens'],
+  programmer: ['préparer', '', '', 'Néologisme de sens'],
+  organiser: ['arranger', '', '', 'Néologisme de sens'],
+  jaamba: ['', '', '', 'Néologisme de sens'],
+  // Composés
+  link: ['route / qui / mener / endroit', '', ''],
+  smartart: ['chose / qui / faire / âme', '', ''],
+  defaut: ['chose / qui / rester / comme ça', '', ''],
+  break: ['papier / qui / suivre', '', ''],
+  toc: ['écriture / qui / annonce', '', ''],
+  tocupdate: ['écriture / nouveau / qui / annonce', '', ''],
+  code: ['écriture / qui / se cacher', '', ''],
+  iagen: ['écriture / nouveau / qui / produire', '', ''],
+  linesp: ['écriture / deux / milieu', '', '', 'Séquence N-Num-N'],
+  obtenir: ['obtenir / et / changer', '', ''],
+  trierfiltrer: ['trier / et / filtrer', '', ''],
+  apprsup: ['étude / avec / route', '', ''],
+  tableill: ['calebasse / avec / dessin', '', ''],
+  numeriser: ['mettre / calebasse / dans', '', ''],
+  ia: ['intelligence / nouveau', '', ''],
+  iaforte: ['intelligence / nouveau / gros', '', '', 'Composé N + Adj1 + Adj2'],
+  iafaible: ['intelligence / nouveau / petit', '', '', 'Composé N + Adj1 + Adj2'],
+};
+const noteText = n => [n[3], n[0] && `Décomposition : / ${n[0]} /`, n[1] && `Traduction littérale : « ${n[1]} »`, n[2]].filter(Boolean).join('. ').replace(/\.\./g, '.');
+const CATS = { word: 'Lexique Word-Excel', ia: 'Lexique IA', ui: 'Interface d’origine', todo: 'À traduire (absent du lexique)' };
+// Tableau du 25/09/2026 : orthographe standard (sans tons), catégorie et définition en mooré. Clé : « français du lexique|lexique ».
+const LEX_STD = {
+  "étiquettes|word": ["bãnde", "Ya zĩ kẽeda tɩ naan bãnde.", "n", ""],
+  "champs de fusion en surbrillance|word": ["bĩngr zĩĩga", "Ya zĩ wilgda ned kibare n be sebra pʋga.", "n", ""],
+  "cellules|word": ["bok kɩdse", "Ya bok kɩdsa fãa n be sebra pʋga tõnd rɩka tɩ maan gɛɛla.", "n", ""],
+  "SmartArt|word": ["bũm m mããn sɩɩga", "Ya bũmb sõngd sɩɩs naanogo.", "n", ""],
+  "style|word": ["buuda", "Ya tekr zĩiga kẽeda n tek sebra naanogo.", "n", ""],
+  "définir par défaut|word": ["bũm m pa woto", "Ya bũmb n pa woto n dik tʋʋm tʋʋmã.", "v", ""],
+  "forme|word": ["bedrem búúdá", "Ya zĩ kẽeda tɩ maneg nãade bedrem n be sebra zug.", "n", ""],
+  "recherche de destinataires|word": ["deegd baoobo", "Ya zĩ kẽeda bao neda sẽn deegd sebra.", "n", ""],
+  "coller|word": ["dɩgle", "Ya zĩ kẽeda n dɩgel bum fãa tõnd rɩkam.", "v", ""],
+  "bibliothèque de fonctions|word": ["geelg buudu", "Ya seba fãa manegre tõnd rika maan gɛɛla sebre.", "n", ""],
+  "audit de formules|word": ["geelg veesgo", "Ya zĩ kẽeda ges n vesg gɛɛla fãa.", "n", ""],
+  "calcul|word": ["geelgo", "Ya zĩ kẽeda maan gɛɛla.", "n", ""],
+  "index|word": ["gʋlsr sõama gilli", "Ya goam sõama fãan n be sebra pʋga.", "n", ""],
+  "disposition|word": ["gʋlsr buuda fãa", "Ya zĩ kẽeda tɩ ges sebra manegre.", "n", ""],
+  "coupure de mot|word": ["gʋlsr lebgr wat singre", "Ya gʋlsro n gomda gʋlsro to goama.", "n", ""],
+  "table des matières|word": ["gʋlsr n tosgdẽ", "Ya gʋlsro n gomda gʋlsro to goama.", "n", ""],
+  "mise à jour de la table des matières|word": ["gʋlsr paale n tosgdẽ", "Ya zĩ kẽeda maan paale gʋlsro n gomda gʋlsro to goama.", "n", ""],
+  "page de garde|word": ["gʋlsr singre", "Ya gʋlsro n gomda gʋlsro to goama.", "n", ""],
+  "zone de texte|word": ["gʋlsr zĩiga", "Ya zĩ bila bas gʋlsr yĩnga.", "n", ""],
+  "gérer les sources|word": ["goam manegre", "Ya zĩ kẽeda veesg sebra fãa gomde.", "n", ""],
+  "édition|word": ["gʋlsr manegre", "Ya tʋʋm teedo n rɩk maneg sebra gʋlsra.", "n", ""],
+  "interligne|word": ["gʋlsr yiib sʋka", "Ya vɩʋrʋ n be gʋlsa yiib sʋka.", "n", ""],
+  "langue|word": ["goam", "Ya zĩ kẽeda tũus gomd tɩ tʋʋm sebra pʋga.", "n", ""],
+  "presse-papiers|word": ["gʋlsr tʋko", "Ya zĩ n be bũmba tõnd rɩka gʋls zĩ pʋga.", "n", ""],
+  "formules|word": ["geelg manegre", "Ya bũmb sõngd gɛɛla maanegda.", "n", ""],
+  "vérification|word": ["gesr paasgo", "Ya zĩ kẽeda ges n maneg gʋlsa fãa tɩ paam sebr sõngo.", "n", ""],
+  "imprimer|word": ["yiis sebra zug", "Ya zĩ kẽeda yiis sebra yɩnga.", "v", ""],
+  "en-tête|word": ["yĩngr gʋlsro", "Ya gom zu raogo zĩiga n be sebra yĩngri.", "n", ""],
+  "démarrer la fusion|word": ["yak seb buudu", "Ya zĩ kẽeda bãnge seb buudu ti kõ neba to.", "v", ""],
+  "position|word": ["yasre", "Ya zĩ kẽeda ti maneg bũmb waɛ ̃ ga n be sebra pʋga.", "n", ""],
+  "légendes|word": ["yʋʋre", "Ya nãand nɩ sɩɩga yʋʋre.", "n", ""],
+  "information|word": ["kibare", "Ya kibar fãa n be sebra pʋga.", "n", ""],
+  "marges|word": ["kɩrenga woglem", "Ya viʋ n be sebra kɩrenga.", "n", ""],
+  "bordure|word": ["kɩrenga", "Ya zĩ kẽeda maneg bũmb kɩrenga n be sebra pʋga.", "n", ""],
+  "enveloppe|word": ["kòróg bílà", "Ya zĩ kẽeda gʋls gom- biisi tɩ kõ neda to.", "n", ""],
+  "couleur|word": ["kõbgo", "Ya zĩ kẽeda tek gʋlsra kõbgo.", "n", ""],
+  "reculer|word": ["kẽng poore", "Ya zĩ kẽeda mãan ti bũmb n be sebra pʋga kẽng poore.", "v", ""],
+  "avancer|word": ["kẽng taoore", "Ya zĩ kẽeda mãan ti bũmb n be sebra pʋga kẽng taore.", "v", ""],
+  "entrée|word": ["kẽeb goama", "Ya zĩ kẽeda manegr gʋlsr ti paas gʋlsra to.", "n", ""],
+  "définir un nom|word": ["kis yʋʋre", "Ya zĩ kẽeda kis yʋʋre bok kɩdsa fãa n be gɛɛla sebre.", "v", ""],
+  "zoom|word": ["mããn bedre wala kɩdra", "Ya zĩ kẽeda maan sebra bedre wala kɩdra.", "n", ""],
+  "comparer|word": ["make", "Ya zĩ kẽeda make sebra yembre sẽn tar buuda yiibu.", "v", ""],
+  "modification|word": ["manegre", "Ya zĩ kẽeda manegr ni tekr bũmbu n be sebra pʋga.", "n", ""],
+  "références|word": ["makre", "Ya zĩ kẽeda ti maneg geele kaorengo ne karem zĩ bũmbu n be sebra pʋga.", "n", ""],
+  "création|word": ["naanogo", "Ya zĩ kẽeda tɩ manege sebra nẽega.", "n", ""],
+  "symbole|word": ["naade", "Ya nãand buudu n rɩk winig geela.", "n", ""],
+  "insérer une légende|word": ["nĩng yʋʋre", "Ya zĩ kẽeda nĩng yʋʋr gʋlsr nĩnga n be sebra pʋga.", "v", ""],
+  "insérer une citation|word": ["nĩng ned gomde", "Ya zĩ kẽeda nìŋ ned gómdè.", "v", ""],
+  "insérer une note de bas de page|word": ["nĩng tẽngre goama", "Ya zĩ kẽeda nĩng gom sebra tẽngre.", "v", ""],
+  "insérer un fichier multimédia|word": ["nĩng sɩɩgà bi gomde", "Ya zĩ kẽeda ti nĩng sɩɩgà bi gomde sebra pʋga.", "v", ""],
+  "aligner à droite|word": ["nĩng rɩtungo", "Ya zĩ kẽeda nĩng gom-biisa sebra ritungo.", "v", ""],
+  "centrer|word": ["nĩng sʊ́ká", "Ya zĩ kẽeda nĩng gom-biisi sebra sʋka.", "v", ""],
+  "justifier|word": ["nĩng kiiriŋà jé", "Ya zĩ kẽeda nĩng gʋlsra fãan kĩriŋa ye sebra pʋga.", "v", ""],
+  "numériser|word": ["nĩng wámd pʊ̀gà", "Ya zĩ kẽeda tek seba yardo.", "v", ""],
+  "aligner à gauche|word": ["nĩng goàbágá", "Ya zĩ kẽeda nĩng gom-biisa sebra gwabaga.", "v", ""],
+  "habillage|word": ["neng dɩgl buuda", "Ya gʋlsa n naage ne bũmba to.", "n", ""],
+  "enregistrer sous|word": ["nĩng bũm pʋga", "Ya sebr bĩngr zĩiga to.", "v", ""],
+  "enregistrer|word": ["nĩnge", "Ya sebr bĩngr zĩiga.", "v", ""],
+  "commentaires|word": ["neb gomde", "Ya zĩ kẽeda ges n paas ned goama sebra pʋga.", "n", ""],
+  "bloc d’adresse|word": ["ned yir kibare", "Ya zĩ kẽeda nĩng tʋʋlle ned kibare sebra pʋga.", "n", ""],
+  "formule d’appel|word": ["ned pʋʋsr toole", "Ya zĩ kẽeda nĩng pʋʋsg goama sebra pʋga.", "n", ""],
+  "insérer une note de fin|word": ["nĩng saab goama", "Ya zĩ kẽeda nĩng gom tɩ b wʋme a võore sebra saab zĩiga.", "v", ""],
+  "insertion|word": ["paasgo", "Ya zĩ kẽeda tɩ paas bũmba to sebra pʋga.", "n", ""],
+  "nouveau|word": ["paale", "Ya zĩ kẽeda maan sebr paale.", "adj", ""],
+  "augmenter le retrait|word": ["paas kɩrenga", "Ya zĩ kẽeda mãan tɩ gʋlsra kẽng taore.", "v", ""],
+  "retrait à droite|word": ["paas kɩrenga rɩtungo", "Ya zĩ kẽeda ti lebgr gʋlsra rɩtungo.", "n", ""],
+  "retrait à gauche|word": ["paas kɩrenga goabga", "Ya zĩ kẽeda ti lebgr gʋlsra goabaga.", "n", ""],
+  "ajouter le texte|word": ["paas gʋlsra", "Ya zĩ kẽeda paas gʋlsra to gom-biisi pʋga.", "v", ""],
+  "ouvrir|word": ["pake", "Ya zĩ kẽeda pak la maneg sebr.", "v", ""],
+  "trame de fond|word": ["poor nenga", "Ya zĩ kẽeda ti nĩng kõbgo gʋlsra poore.", "n", ""],
+  "espacement arrière|word": ["poor vɩʋra", "Ya zĩ kẽeda ti nĩng viʋ gʋlsa saab zĩiga.", "n", ""],
+  "partager|word": ["pʋɩ", "Ya zĩ kẽeda pʋɩ sebra neda to.", "v", ""],
+  "obtenir et transformer|word": ["paame nɩ teke", "Ya zĩ kẽeda tɩ rɩk kibarã zĩiga to n rɩkba maan tʋʋmã.", "v", ""],
+  "compte|word": ["roogo", "Ya neda ye zĩiga n kẽeda n tʋme sebra zug.", "n", ""],
+  "numéro de ligne|word": ["rulg sõre", "Ya zĩ kẽeda ti winig rulga sõre sebra pʋga.", "n", ""],
+  "terminer|word": ["sa", "Ya zĩ kẽeda tɩ sa sebr manegre.", "v", ""],
+  "saut de page|word": ["sebr nɩ pʋrʋdá", "Ya zĩ kẽeda ti loor sebra to.", "n", "sebra to"],
+  "page vierge|word": ["sebr vɩʋrʋ", "Ya sebr n pa tar gʋlsro.", "n", ""],
+  "illustration|word": ["sebra neng", "Ya zĩ kẽeda ti manege nãade n be sebra zug.", "n", ""],
+  "orientation|word": ["sebra gãaga", "Ya sebra nẽeg gãaga.", "n", ""],
+  "colonnes|word": ["sebra komma", "Ya viʋse biisi n be sebra fãa.", "n", ""],
+  "couleur de page|word": ["sebra kõbgo", "Ya zĩ kẽeda nĩng kõbg sebra fãan zug.", "n", ""],
+  "mise en forme du document|word": ["sebra manegre", "Ya sebra manegre fãa n rɩk tɩ yiisa jɩnga.", "n", ""],
+  "arrière-plan de page|word": ["sebra poore", "Ya zĩ kẽeda ti maneg sebra poora.", "n", ""],
+  "filigrane|word": ["sebra poor naande", "Ya nãand be sebra poora.", "n", ""],
+  "accueil|word": ["sɩngre", "Ya zĩ kẽeda n maneg sebra.", "n", ""],
+  "lien hypertexte|word": ["sor n reed zĩiga", "Ya sor n kẽeda tɩ kẽng sebra to.", "n", ""],
+  "nombre|word": ["sõore", "Ya zĩ kẽeda bing sõora buudu sebra pʋga.", "n", ""],
+  "bibliographie|word": ["seb sẽn karm", "Ya sebra fãa tõnd karam tɩ maan kaorengo.", "v", ""],
+  "publipostage|word": ["seb wʋsr gʋlsro", "Ya zĩ kẽeda tɩ naan neda ye seb sẽn ka to.", "n", ""],
+  "graphique|word": ["sɩɩga buudu", "Ya bũmb sõngd nãands naanogo.", "n", ""],
+  "image|word": ["sɩɩga", "Ya zĩ kẽeda tɩ nĩng sɩɩgà sebra pʋga.", "n", ""],
+  "effet|word": ["sɩɩga kõbgo", "Ya zĩ kẽeda tek bũmb yãaba sebra pʋga.", "n", ""],
+  "bordure de page|word": ["sebra kɩrenga", "Ya zĩ kẽeda maneg sebra fãa kḭ́ rḭ́ ŋa.", "n", ""],
+  "volet sélection|word": ["siis nẽes", "Ya zĩ kẽeda ti maneg sõdgr sebr.", "n", ""],
+  "espacement avant|word": ["taoor vɩʋrʋ", "Ya zĩ kẽeda ti nĩng viʋ gʋlsa yiib sʋka.", "n", ""],
+  "trier|word": ["tũũsi", "Ya zĩ kẽeda tɩ tik sebra kibare.", "v", ""],
+  "macros|word": ["tʋʋm wʋsro", "Ya tʋʋmã zoe tʋʋm.", "n", ""],
+  "sélection des destinataires|word": ["tũũs deegde", "Ya zĩ kẽeda tũus zĩiga tõnd rɩka kibayã.", "n", ""],
+  "renvoi|word": ["tap n wilgd", "Ya gʋlsr reed bũmba to n sebra pʋga.", "n", ""],
+  "pied de page|word": ["tẽngr gʋlsro", "Ya gom zu raogo zĩiga n be sebra tẽngra.", "n", ""],
+  "règles et aperçu des résultats|word": ["tʋʋm saab sore", "Ya zĩ kẽeda ges ned sebr kibarã fãa tɩ yiis bamba yɩnga.", "n", ""],
+  "outils de données|word": ["tʋʋmd teed kibayã", "Ya teed n rɩk maneg kibare.", "n", ""],
+  "aligner|word": ["tomse", "Ya zĩ kẽeda tɩ maneg bũmb fãan yasre n be sebra pʋga.", "v", ""],
+  "note de bas de page suivante|word": ["tẽngr gómdà tó", "Ya zĩ kẽeda ti paam tẽngr goama tʋʋlle.", "n", ""],
+  "table des autorités|word": ["tõog gʋlsro", "Ya gʋlsr buudu n be sebra pʋga.", "n", ""],
+  "modifier la liste des destinataires|word": ["tek deegde", "Ya zĩ kẽeda tek sebra bũmbu tɩ kõ neba to.", "v", ""],
+  "connexions|word": ["tõkre", "Ya zĩ kẽeda tõngr bumba yiibu tí paam kibar paale.", "n", ""],
+  "trier et filtrer|word": ["tũũsi nɩ yooge", "Ya zĩ kẽeda maneg n wilg kibarã.", "v", ""],
+  "fenêtre|word": ["võore", "Ya zĩ kẽeda manegr zĩ wilg sebra.", "n", ""],
+  "fichier|word": ["wamd kibare", "Ya zĩ kẽeda tõgõnd kibayã.", "n", ""],
+  "tableau|word": ["wal", "Ya wal sẽn tar kibare.", "n", ""],
+  "table des illustrations|word": ["wamd nɩ naande", "Ya zĩ kẽeda maneg nããnd buuda fãan n sebra pʋga.", "n", ""],
+  "afficher|word": ["wilgi", "Ya zĩ kẽeda wilg n solg bũmba fãan n be sebra pʋga.", "v", ""],
+  "afficher tout|word": ["wilg fãa", "Ya zĩ kẽeda tɩ winig sebra bũmb n solge.", "v", ""],
+  "affichage|word": ["wilgri", "Ya zĩ kẽeda manegr bũmba fãan wilgri n be sebra pʋga.", "n", ""],
+  "modes d’affichage|word": ["wilgri buudu", "Ya zĩ kẽeda tũus bũmba fãan wilgri n be sebra pʋga.", "n", ""],
+  "diminuer le retrait|word": ["woor kɩrenga", "Ya zĩ kẽeda mãan tɩ gʋlsra kẽng poore.", "v", ""],
+  "restreindre la modification|word": ["woor manegre", "Ya zĩ kẽeda woor bũmb tekr ni manegre sebra pʋga.", "v", ""],
+  "puces|word": ["willa", "Ya bãnde sẽn tar tõnkr ne gʋlsro.", "n", ""],
+  "taille|word": ["woglem", "Ya zĩ kẽeda ti maneg sebra woglem.", "n", ""],
+  "exporter|word": ["zã zĩiga to", "Ya zĩ kẽeda nĩng sebra buuda to.", "v", ""],
+  "blockchain|ia": ["bãngr bĩngr zĩiga", "Ya kibayã bãngr bĩng zĩiga sẽn ya yaolengo.", "n", ""],
+  "traitement du langage naturel|ia": ["buud goam tɩbsgo", "Ya bãngre sẽn tare ned kutu n tõe wʋme, la veesg, la maan buud goama.", "n", ""],
+  "reconnaissance de la parole|ia": ["gomd bãngre", "Ya tõogo yam paale sẽn tare n tõe bãng buud goama.", "n", ""],
+  "code|ia": ["gʋlsr n solge", "Ya gʋlsr buudu toor toore n solge tarã tʋʋmde.", "n", ""],
+  "génération de texte|ia": ["gʋlsr naanogo", "Ya tõogo yam paale sẽn tare n tõe guls gom- biisi.", "n", ""],
+  "assistant virtuel|ia": ["yaamba", "Ya ned kutu sẽn tare bãngre tõe sõs ne neda la tʋme soaba sẽn data.", "n", ""],
+  "test de Turing|ia": ["yam gesro", "Ya bẽdga n bẽte ned kuta nã ges a tara yam bi.", "n", ""],
+  "IA faible|ia": ["yam paale kɩdra", "Ya ned kutu n tar bãngre tʋʋm yell bãoonego.", "n", ""],
+  "intelligence artificielle|ia": ["yam paale", "Ya bãngr naanedga n bé ned kutu pʋga ta tõy tʋʋm wala ninsaala.", "n", ""],
+  "IA forte|ia": ["yam paale bedre", "Ya ned kutu sẽn tar tõogo tõe zãmse, la wʋme, la tʋʋm yɩɩd ninsaala.", "n", ""],
+  "IA générative|ia": ["yam paale n wome", "Ya ned kutu sẽn rɩk kibar bilfu tɩ maan yel beda wala gʋlsro, yɩɩla, sɩɩga, la sõs wala ninsaala.", "n", ""],
+  "données de sortie|ia": ["yitg kibare", "Ya kibar fãa ned kutu sẽn maane.", "n", ""],
+  "capteur|ia": ["yõkda", "Ya bũm n tar tõogo tɩ yõk kibayã n tallẽ tʋʋm tʋʋmde.", "n", ""],
+  "apprentissage supervisé|ia": ["kaorengo nɩ sore", "Ya tõongo yam paale sẽn tare n tõe zamse la kõ lekre sẽn wate.", "n", ""],
+  "analyse des données|ia": ["kibar veesgo", "Ya yam buudu toor toore tarẽ vesg kibayã n yak kibayã nĩsi n tar yõodo n kõ soaba.", "n", ""],
+  "big data|ia": ["kibar bedre", "Ya kibar wʋsro rɩkda tʋʋmd tʋʋmde yam paale pʋga.", "n", ""],
+  "data|ia": ["kibare", "Ya kibar fãan rɩkda tʋʋmd tʋʋmde yam paale pʋga.", "n", ""],
+  "données d’entrée|ia": ["kẽdg kibare", "Ya kibar fãan n be yam paale noore.", "n", ""],
+  "architecture|ia": ["makre", "Ya bũmb nĩnga n wilg yam paale makre.", "n", ""],
+  "automatisation|ia": ["mɛ́ŋ tʋʋmdé", "Ya tõongo sẽn tar ned kutu tɩ tʋʋmd tʋʋmde yembre.", "n", ""],
+  "apprentissage automatique|ia": ["mɛ́ŋ zàmsgò", "Ya tõongo yam paale sẽn tare n tõe zams la togs bũmb sẽn watẽ.", "n", ""],
+  "vie artificielle|ia": ["nĩnsaal vɩ́ɩ́m páálè", "Ya pʋtẽer vɩɩm ned kutu maane.", "n", ""],
+  "prompt|ia": ["noore", "Ya bũmb daabo fo kõte ned kutu ta nã paam tʋme soagmã.", "n", ""],
+  "série d’instructions|ia": ["noore wʋsro", "Ya bũmb wʋsro fo kõte ned kutu ta nã paam tʋme sõamã.", "n", ""],
+  "robot|ia": ["ned kutu", "Ya ned kutu sẽn tar bãngre tɩ tʋm wala ninsaala.", "n", ""],
+  "robotique|ia": ["ned kutu kaorengo", "Ya ned kuta bãngre ne tõongo kaorengo.", "n", ""],
+  "algorithme|ia": ["palle", "Ya pall palle n tata paam tʋʋmd tʋʋmde.", "n", ""],
+  "programmer|ia": ["sogolgo", "Ya bãngr tiki nã sõngd maan tʋʋmã.", "v", ""],
+  "cloud|ia": ["sawat", "Ya bĩngr zĩisi kẽeda deegd kibayã be zĩ zãrga.", "n", ""],
+  "reconnaissance d’images|ia": ["sɩɩga bãngre", "Ya tõogo yam paale sẽn tar getẽ la vesg sɩɩga n ges la togsa a sẽn ya bũmb la nĩnga.", "n", ""],
+  "artefact|ia": ["tudgri", "Ya tudgri be ned kutu tʋʋmd pʋgẽ.", "n", ""],
+  "biais|ia": ["taogsgo", "Ya yam paale tar tõogo tagsg ned yelle wa bũmb yelle.", "n", ""],
+  "vie privée|ia": ["vɩ́ɩ́m n sólge", "Ya yam paale tar ned fãa kibar bĩngdẽ.", "n", ""],
+  "apprentissage profond|ia": ["zamsg zulunga", "Ya tõongo yam paale sẽn tare n tõe zamsdẽ kibayã wʋsro pʋgẽ.", "n", ""],
+  "voiture intelligente|ia": ["zirg sõngo", "Ya zirga tar yam tõe soora menga maan a n data.", "n", ""],
+  "perceptron|ia": ["zukõt kʋdre", "Ya zu-kõto biisi kʋdre yako.", "n", ""],
+  "réseau de neurones|ia": ["zukõt biisi sore", "Ya sor nĩnga n be zu-kõto biisi n tõk taaba.", "n", ""],
+  "fonctions cognitives|ia": ["zukõt tʋʋmde", "Ya yam paale tar tõogo tõe bãnge buudu toor toore goama ne sɩɩse la tar tagsgo.", "n", ""],
+};
+// Termes du tableau absents des annexes.
+const LEX_NEW = [
+  ["protéger la feuille", "bĩng seba", "Ya zĩ kẽeda kogl sebra n gɩdg tɩ bũmba to pa kẽ.", "v"],
+  ["prévision", "beoolre", "Ya zĩ kẽeda rɩk kibare tɩ bãng sõd-bila yõodo.", "n"],
+  ["plan", "kõb tɩɩga", "Ya zĩ kẽeda paam kibar kʋmbgo.", "n"],
+  ["réorganiser tout", "manegr fãa", "Ya zĩ kẽeda maneg tʋʋmd zĩiga n be sebra pʋga.", "v"],
+  ["accessibilité", "sor ya naana", "Ya zĩ kẽeda paam sebra naana.", "n"],
+  ["changer de fenêtre", "tek võore", "Ya zĩ kẽeda tek tʋʋmd zĩiga.", "v"],
+  ["nouvelle fenêtre", "võor paale", "Ya zĩ kẽeda pak tʋʋmd zĩis yiib soaba tɩ tʋʋm tʋʋmã.", "n"],
+];
+const GLOSSARY = [['word', LEX_WORD], ['ia', LEX_IA], ['ui', LEX_UI]].flatMap(([cat, list]) =>
+  list.map(([fr, mo, k]) => {
+    const [std, def, pos, variant] = LEX_STD[fr + '|' + cat] || [];
+    return { k: k || cat + ':' + fold(fr).replace(/[^a-z0-9]+/g, '-'), fr, mo, std, def, pos, variant, cat, note: k && NOTES[k] };
+  }));
+LEX_NEW.forEach(([fr, std, def, pos]) => GLOSSARY.push({ k: 'word:' + fold(fr).replace(/[^a-z0-9]+/g, '-'), fr, mo: '', std, def, pos, cat: 'word' }));
+const GL = Object.fromEntries(GLOSSARY.map(g => [g.k, g]));
+let overrides = store.get('gombiisi.glossaire', {});
+// Orthographe affichée : « std » = standard sans tons (tableau), « ton » = notation tonale du mémoire.
+let ORTHO = store.get('gombiisi.ortho', 'std');
+const base = g => (ORTHO === 'std' ? g.std || g.mo : g.mo || g.std) || '';
+const alt = g => { const b = base(g), o = ORTHO === 'std' ? g.mo : g.std; return o && o !== b ? o : ''; };
+const mo = k => (k && (overrides[k] || (GL[k] && base(GL[k])))) || '';
+const slug = s => fold(s).replace(/…$/, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+// Libellé sans équivalent dans le lexique : il entre dans le glossaire « À traduire » et reste en français tant qu'on ne l'a pas traduit.
+function reg(k, fr) {
+  if (GL[k]) return k;
+  fr = fr.replace(/…$/, '');
+  const same = GLOSSARY.find(g => g.cat === 'todo' && fold(g.fr) === fold(fr));
+  if (same) return same.k;
+  const e = { k, fr, mo: '', cat: 'todo' }; GLOSSARY.push(e); GL[k] = e;
+  return k;
+}
+const t = (k, fr) => mo(reg(k, fr)) || fr;
+const NO_MO = 'Pas d’équivalent mooré dans le corpus du mémoire : le libellé Word est conservé.';
+
+/* ---------- Icônes ---------- */
+const P = {
+  sidebar: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/>',
+  save: '<path d="M5 3h11l4 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 1-2z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/>',
+  undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  redo: '<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
+  print: '<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/>',
+  pen: '<path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  share: '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4M12 2v13"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  up: '<path d="m18 15-6-6-6 6"/>',
+  paste: '<path d="M9 2h6v4H9z"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
+  cut: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/>',
+  copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  brush: '<path d="m14.6 3.4 6 6-7.2 7.2-6-6z"/><path d="M7.4 10.6 3 15c-1 1-1 2.6 0 3.6l2.4 2.4c1 1 2.6 1 3.6 0l4.4-4.4"/>',
+  ul: '<path d="M9 6h12M9 12h12M9 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01" stroke-width="3"/>',
+  ol: '<path d="M10 6h11M10 12h11M10 18h11"/><path d="M4 5l1-1v5M3.5 9h3M6.5 19h-3c0-1.2 3-1.8 3-3.3 0-.8-.7-1.2-1.5-1.2S3.6 15 3.5 15.5"/>',
+  outdent: '<path d="m7 8-4 4 4 4M21 12H11M21 6H11M21 18H11"/>',
+  indent: '<path d="m3 8 4 4-4 4M21 12H11M21 6H11M21 18H11"/>',
+  al: '<path d="M3 6h18M3 12h12M3 18h15"/>',
+  ac: '<path d="M3 6h18M6 12h12M4 18h16"/>',
+  ar: '<path d="M3 6h18M9 12h12M6 18h15"/>',
+  aj: '<path d="M3 6h18M3 12h18M3 18h18"/>',
+  spacing: '<path d="M11 6h10M11 12h10M11 18h10M5 4v16M3 6l2-2 2 2M3 18l2 2 2-2"/>',
+  bucket: '<path d="m19 11-8-8-8 8 8 8z"/><path d="M21 15s-2 2.5-2 4a2 2 0 0 0 4 0c0-1.5-2-4-2-4"/>',
+  border: '<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M12 7v10M7 12h10" stroke-dasharray="2 2"/>',
+  image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
+  table: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  pagebreak: '<path d="M5 3v6h14V3M5 21v-6h14v6M3 12h2M8 12h3M13 12h3M19 12h2"/>',
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  comment: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  textbox: '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M8 9h8M12 9v7"/>',
+  toc: '<path d="M4 6h11M4 12h14M4 18h9M19 6h1M20 18h0"/>',
+  pagenum: '<path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M10 17h4M12 15v4" />',
+  margins: '<rect x="4" y="2" width="16" height="20" rx="1"/><rect x="7.5" y="5.5" width="9" height="13" stroke-dasharray="2 1.6"/>',
+  orient: '<rect x="3" y="7" width="13" height="10" rx="1"/><rect x="9" y="3" width="9" height="13" rx="1"/>',
+  palette: '<circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/><path d="M12 2a10 10 0 0 0 0 20c.9 0 1.5-.7 1.5-1.5 0-.4-.2-.8-.4-1.1-.3-.3-.4-.6-.4-1.1 0-.8.7-1.5 1.5-1.5H16a6 6 0 0 0 6-6c0-5-4.5-8.8-10-8.8z"/>',
+  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  stats: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  check: '<path d="M4 12l5 5L20 6"/>',
+  proof: '<path d="M3 5h9M3 10h6M3 15h5"/><path d="m12 16 3 3 6-7"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  one: '<rect x="7" y="3" width="10" height="18" rx="1"/>',
+  two: '<rect x="2" y="4" width="9" height="16" rx="1"/><rect x="13" y="4" width="9" height="16" rx="1"/>',
+  width: '<rect x="3" y="5" width="18" height="14" rx="1"/><path d="M7 12h10M9 10l-2 2 2 2M15 10l2 2-2 2"/>',
+  zin: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M8 11h6M11 8v6"/>',
+  zout: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M8 11h6"/>',
+  ruler: '<path d="M3 8h18v8H3z"/><path d="M7 8v3M11 8v4M15 8v3M19 8v4"/>',
+  full: '<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>',
+  replace: '<path d="M4 7h11l-3-3M20 17H9l3 3"/>',
+  select: '<path d="M5 3a2 2 0 0 0-2 2M19 3a2 2 0 0 1 2 2M21 19a2 2 0 0 1-2 2M5 21a2 2 0 0 1-2-2M9 3h1M9 21h1M14 3h1M14 21h1M3 9v1M21 9v1M3 14v1M21 14v1"/>',
+  trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"/>',
+  insertIco: '<path d="M12 5v14M5 12h14"/>',
+  edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  sort: '<path d="M3 16l4 4 4-4M7 20V4"/><path d="M14 4h6l-6 7h6M14 20l3-7 3 7M15 18h4" stroke-width="1.5"/>',
+  open: '<path d="M4 20h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-8l-2-3H4a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1z"/>',
+  newdoc: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 12v6M9 15h6"/>',
+};
+const ico = (n, cls = 'i') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || ''}</svg>`;
+
+/* ---------- État ---------- */
+const DEFAULT_SETTINGS = { margin: 2.5, orient: 'portrait', pageColor: '#ffffff', font: 'Times New Roman', spacing: 'normal', pageNumbers: true, lang: 'mos', spell: false };
+let docs = store.get('gombiisi.docs', {});
+let current = null;
+let S = { ...DEFAULT_SETTINGS };
+let savedRange = null, dirty = false, readOnly = false, zoom = 100, nPages = 1;
+let painter = null, selImg = null;
+let ui = Object.assign({ nav: false, navTab: 'titres', ruler: true, marks: false, tab: 'home', theme: 'system', ribbon: true }, store.get('gombiisi.ui', {}));
+const saveUi = () => store.set('gombiisi.ui', ui);
+
+/* ---------- Commandes ---------- */
+const FONTS = ['Times New Roman', 'Arial', 'Calibri', 'Cambria', 'Georgia', 'Garamond', 'Verdana', 'Tahoma', 'Noto Sans', 'Courier New'];
+const SIZES = [8, 9, 10, 10.5, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
+const FONT_COLORS = ['#000000', '#404040', '#7f7f7f', '#c00000', '#ff0000', '#ed7d31', '#ffc000', '#70ad47', '#00b050', '#00b0f0', '#2e75b6', '#1f3864', '#7030a0', '#a8660b'];
+const HILITE = ['#ffff00', '#00ff00', '#00ffff', '#ff00ff', '#8db3e2', '#ff8080', '#ffd966', '#c6e0b4', '#bdd7ee', '#e2cfee', '#d9d9d9', '#f8cbad', '#fff2cc', 'transparent'];
+const SHADES = ['transparent', '#f2f2f2', '#d9d9d9', '#fff2cc', '#e2efda', '#ddebf7', '#fce4d6', '#ededed', '#dae3f3', '#fbe5d6', '#e4dfec', '#ffffcc', '#e8f4ea', '#f3e1c7'];
+
+const C = {
+  navpane:   { fr: 'Volet de navigation', icon: 'sidebar', run: () => toggleNav(), chk: () => ui.nav },
+  save:      { fr: 'Enregistrer', k: 'save', icon: 'save', key: 'Ctrl+S', run: () => saveNow(true) },
+  saveas:    { fr: 'Enregistrer sous…', k: 'saveas', icon: 'save', run: () => saveAs() },
+  undo:      { fr: 'Annuler', icon: 'undo', key: 'Ctrl+Z', g: 'Annuler', run: () => exec('undo') },
+  redo:      { fr: 'Rétablir', icon: 'redo', key: 'Ctrl+Y', g: 'Annuler', run: () => exec('redo') },
+  print:     { fr: 'Imprimer', k: 'print', icon: 'print', key: 'Ctrl+P', run: () => printDoc() },
+  readonly:  { fr: 'Lecture seule (protéger le document)', k: 'readonly', icon: 'pen', run: () => setReadOnly(!readOnly), chk: () => readOnly },
+  rename:    { fr: 'Renommer le document', run: () => renameDialog() },
+  share:     { fr: 'Partager', k: 'share', icon: 'share', run: () => shareDialog() },
+  newdoc:    { fr: 'Nouveau document', k: 'newdoc', icon: 'newdoc', key: 'Ctrl+Alt+N', run: () => newDocument() },
+  open:      { fr: 'Ouvrir un fichier…', k: 'open', icon: 'open', run: () => $('#f-open').click() },
+  export:    { fr: 'Exporter en HTML', k: 'export', suf: ' · .html', icon: 'share', run: () => exportHtml() },
+  exportdoc: { fr: 'Exporter pour Word (.doc)', k: 'export', suf: ' · Word (.doc)', icon: 'share', run: () => exportWord() },
+  info:      { fr: 'Informations sur le document', k: 'info', run: () => openBackstage('info') },
+  about:     { fr: 'À propos de Gom-biisi', run: () => openBackstage('about') },
+  shortcuts: { fr: 'Raccourcis clavier', run: () => shortcutsDialog() },
+
+  cut:       { fr: 'Couper', icon: 'cut', key: 'Ctrl+X', g: 'clipboard', run: () => exec('cut') },
+  copy:      { fr: 'Copier', icon: 'copy', key: 'Ctrl+C', g: 'clipboard', run: () => exec('copy') },
+  paste:     { fr: 'Coller', k: 'paste', icon: 'paste', key: 'Ctrl+V', g: 'clipboard', run: () => pasteButton() },
+  painter:   { fr: 'Reproduire la mise en forme', icon: 'brush', g: 'clipboard', run: () => togglePainter(), chk: () => !!painter },
+  selectall: { fr: 'Tout sélectionner', icon: 'select', key: 'Ctrl+A', g: 'm_edit', run: () => { doc.focus(); exec('selectAll'); } },
+  find:      { fr: 'Rechercher', icon: 'search', key: 'Ctrl+F', g: 'm_edit', run: () => { $('#search').focus(); $('#search').select(); } },
+  replace:   { fr: 'Remplacer…', icon: 'replace', key: 'Ctrl+H', g: 'm_edit', run: () => replaceDialog() },
+
+  grow:      { fr: 'Augmenter la taille de police', g: 'font', run: () => stepSize(1) },
+  shrink:    { fr: 'Réduire la taille de police', g: 'font', run: () => stepSize(-1) },
+  casemenu:  { fr: 'Modifier la casse', g: 'font', run: el => openMenu(el, caseItems()) },
+  clear:     { fr: 'Effacer toute la mise en forme', g: 'font', run: () => { exec('removeFormat'); exec('formatBlock', '<p>'); } },
+  bold:      { fr: 'Gras', key: 'Ctrl+B', g: 'font', state: 'bold', run: () => exec('bold') },
+  italic:    { fr: 'Italique', key: 'Ctrl+I', g: 'font', state: 'italic', run: () => exec('italic') },
+  underline: { fr: 'Souligné', key: 'Ctrl+U', g: 'font', state: 'underline', run: () => exec('underline') },
+  strike:    { fr: 'Barré', g: 'font', state: 'strikeThrough', run: () => exec('strikeThrough') },
+  sub:       { fr: 'Indice', key: 'Ctrl+=', g: 'font', state: 'subscript', run: () => exec('subscript') },
+  sup:       { fr: 'Exposant', key: 'Ctrl+Maj+=', g: 'font', state: 'superscript', run: () => exec('superscript') },
+  effects:   { fr: 'Effets de texte', k: 'effects', g: 'font', run: el => openMenu(el, effectItems()) },
+  hilite:    { fr: 'Couleur de surlignage du texte', g: 'font', run: () => exec('hiliteColor', ui.hilite || '#ffff00') },
+  hilitemenu:{ fr: 'Choisir la couleur de surlignage', g: 'font', run: el => openPalette(el, HILITE, c => { ui.hilite = c; saveUi(); paintSwatches(); exec('hiliteColor', c); }) },
+  color:     { fr: 'Couleur de police', k: 'color', g: 'font', run: () => exec('foreColor', ui.color || '#c00000') },
+  colormenu: { fr: 'Choisir la couleur de police', k: 'color', g: 'font', run: el => openPalette(el, FONT_COLORS, c => { ui.color = c; saveUi(); paintSwatches(); exec('foreColor', c); }) },
+
+  ul:        { fr: 'Puces', k: 'ul', icon: 'ul', g: 'Paragraphe', state: 'insertUnorderedList', run: () => exec('insertUnorderedList') },
+  ol:        { fr: 'Numérotation', icon: 'ol', g: 'Paragraphe', state: 'insertOrderedList', run: () => exec('insertOrderedList') },
+  outdent:   { fr: 'Diminuer le retrait', k: 'outdent', icon: 'outdent', g: 'Paragraphe', run: () => exec('outdent') },
+  indent:    { fr: 'Augmenter le retrait', k: 'indent', icon: 'indent', g: 'Paragraphe', run: () => exec('indent') },
+  sort:      { fr: 'Trier les paragraphes (A → Z)', k: 'sort', icon: 'sort', g: 'Paragraphe', run: () => sortBlocks() },
+  marks:     { fr: 'Afficher tout (marques ¶)', k: 'marks', g: 'Paragraphe', run: () => toggleMarks(), chk: () => ui.marks },
+  jl:        { fr: 'Aligner à gauche', k: 'jl', icon: 'al', key: 'Ctrl+L', g: 'Paragraphe', state: 'justifyLeft', run: () => exec('justifyLeft') },
+  jc:        { fr: 'Centrer', k: 'jc', icon: 'ac', key: 'Ctrl+E', g: 'Paragraphe', state: 'justifyCenter', run: () => exec('justifyCenter') },
+  jr:        { fr: 'Aligner à droite', k: 'jr', icon: 'ar', key: 'Ctrl+R', g: 'Paragraphe', state: 'justifyRight', run: () => exec('justifyRight') },
+  jf:        { fr: 'Justifier', k: 'jf', icon: 'aj', key: 'Ctrl+J', g: 'Paragraphe', state: 'justifyFull', run: () => exec('justifyFull') },
+  linesp:    { fr: 'Interligne et espacement', k: 'linesp', icon: 'spacing', g: 'Paragraphe', run: el => openMenu(el, ['1,0', '1,15', '1,5', '2,0', '2,5', '3,0'].map(v => ({ fr: v, run: () => blockStyle('lineHeight', v.replace(',', '.')) }))) },
+  shading:   { fr: 'Trame de fond', k: 'shading', icon: 'bucket', g: 'Paragraphe', run: el => openPalette(el, SHADES, c => blockStyle('backgroundColor', c === 'transparent' ? '' : c)) },
+  borders:   { fr: 'Bordure du paragraphe', k: 'borders', icon: 'border', g: 'Paragraphe', run: () => toggleBorder() },
+
+  pagebreak: { fr: 'Saut de page', k: 'break', icon: 'pagebreak', key: 'Ctrl+Entrée', g: 'Pages', run: () => insertPageBreak() },
+  pagenums:  { fr: 'Numéros de page', icon: 'pagenum', g: 'En-tête et pied de page', run: () => { S.pageNumbers = !S.pageNumbers; settingsChanged(); }, chk: () => S.pageNumbers },
+  datetime:  { fr: 'Date et heure…', icon: 'calendar', g: 'writing', run: () => dateDialog() },
+  comment:   { fr: 'Commentaire', k: 'comment', icon: 'comment', g: 'comment', run: () => commentDialog() },
+  footnote:  { fr: 'Note de bas de page', k: 'footnote', glyph: 'ab¹', g: 'Notes', run: () => footnoteDialog() },
+  caption:   { fr: 'Légende…', k: 'caption', glyph: 'Lé', g: 'captions', run: () => captionDialog() },
+  toc:       { fr: 'Index et tables (table des matières)', k: 'toc', icon: 'toc', g: 'toc', run: () => insertToc() },
+  tocupdate: { fr: 'Mettre à jour la table', k: 'tocupdate', icon: 'redo', g: 'toc', run: () => updateToc(true) },
+  image:     { fr: 'Image…', k: 'image', icon: 'image', g: 'illustrations', run: () => { saveSel(); $('#f-image').click(); } },
+  textbox:   { fr: 'Zone de texte', k: 'textbox', icon: 'textbox', g: 'writing', run: () => exec('insertHTML', '<div class="gb-textbox"><p>Zone de texte</p></div><p><br></p>') },
+  symbol:    { fr: 'Symbole avancé…', k: 'symbol', glyph: 'Ω', g: 'symbol', run: () => symbolDialog() },
+  equation:  { fr: 'Équation…', k: 'equation', glyph: 'π', g: 'symbol', run: () => equationDialog() },
+  table:     { fr: 'Insérer un tableau…', k: 'table', icon: 'table', g: 'table', run: () => tableDialog() },
+  link:      { fr: 'Lien…', k: 'link', icon: 'link', key: 'Ctrl+K', g: 'links', run: () => linkDialog() },
+  rowabove:  { fr: 'Insérer une ligne au-dessus', run: () => tableOp('rowabove') },
+  rowbelow:  { fr: 'Insérer une ligne en dessous', run: () => tableOp('rowbelow') },
+  colleft:   { fr: 'Insérer une colonne à gauche', run: () => tableOp('colleft') },
+  colright:  { fr: 'Insérer une colonne à droite', run: () => tableOp('colright') },
+  delrow:    { fr: 'Supprimer la ligne', run: () => tableOp('delrow') },
+  delcol:    { fr: 'Supprimer la colonne', run: () => tableOp('delcol') },
+  deltable:  { fr: 'Supprimer le tableau', run: () => tableOp('deltable') },
+
+  pagecolor: { fr: 'Couleur de page', k: 'pagecolor', icon: 'bucket', g: 'background', run: el => openPalette(el, ['#ffffff', '#fbf7ec', '#f4f8fd', '#f1f8f2', '#fdf3f3', '#f7f4fb'], c => { S.pageColor = c; settingsChanged(); }) },
+  docfont:   { fr: 'Police du document', k: 'font', glyph: 'Aa', g: 'docformat', run: el => openMenu(el, FONTS.map(f => ({ fr: f, run: () => { S.font = f; settingsChanged(); }, chk: () => S.font === f }))) },
+  parasp:    { fr: 'Espacement des paragraphes', icon: 'spacing', g: 'docformat', run: el => openMenu(el, [['none', 'Aucun'], ['normal', 'Normal'], ['wide', 'Large']].map(([v, l]) => ({ fr: l, run: () => { S.spacing = v; settingsChanged(); }, chk: () => S.spacing === v }))) },
+  theme:     { fr: 'Thème de l’interface', k: 'theme', icon: 'moon', g: 'Interface', run: el => openMenu(el, [['system', 'Selon le système'], ['light', 'Clair'], ['dark', 'Sombre']].map(([v, l]) => ({ fr: l, run: () => setTheme(v), chk: () => ui.theme === v }))) },
+
+  margins:   { fr: 'Marges', k: 'margins', icon: 'margins', g: 't_layout', run: el => openMenu(el, [[2.5, 'Normales (2,5 cm)'], [1.27, 'Étroites (1,27 cm)'], [1.9, 'Modérées (1,9 cm)'], [3.18, 'Larges (3,18 cm)']].map(([v, l]) => ({ fr: l, run: () => { S.margin = v; settingsChanged(); }, chk: () => S.margin === v }))) },
+  orient:    { fr: 'Orientation', k: 'orient', icon: 'orient', g: 't_layout', run: el => openMenu(el, [['portrait', 'Portrait'], ['landscape', 'Paysage']].map(([v, l]) => ({ fr: l, run: () => { S.orient = v; settingsChanged(); }, chk: () => S.orient === v }))) },
+
+  stats:     { fr: 'Statistiques', icon: 'stats', g: 'proofing', run: () => statsDialog() },
+  spell:     { fr: 'Vérification orthographique', k: 'proofing', icon: 'proof', g: 'proofing', run: () => { S.spell = !S.spell; settingsChanged(); }, chk: () => S.spell },
+  language:  { fr: 'Langue du document', k: 'language', icon: 'globe', g: 'language', run: () => languageDialog() },
+  delcomments:{ fr: 'Supprimer tous les commentaires', icon: 'trash', g: 'comment', run: () => removeComments() },
+
+  onepage:   { fr: 'Une page', icon: 'one', g: 'zoom', run: () => fitZoom('one') },
+  twopages:  { fr: 'Plusieurs pages', icon: 'two', g: 'zoom', run: () => fitZoom('two') },
+  pagewidth: { fr: 'Largeur de page', icon: 'width', g: 'zoom', run: () => fitZoom('width') },
+  zoomin:    { fr: 'Zoom avant', k: 'zoom', icon: 'zin', key: 'Ctrl+molette', g: 'zoom', run: () => setZoom(zoom + 10) },
+  zoomout:   { fr: 'Zoom arrière', k: 'zoom', icon: 'zout', g: 'zoom', run: () => setZoom(zoom - 10) },
+  zoom100:   { fr: 'Zoom 100 %', k: 'zoom', glyph: '100', g: 'zoom', run: () => setZoom(100) },
+  ruler:     { fr: 'Règle', icon: 'ruler', g: 'show', run: () => { ui.ruler = !ui.ruler; saveUi(); applyUi(); }, chk: () => ui.ruler },
+  fullscreen:{ fr: 'Plein écran', icon: 'full', g: 'm_window', run: () => fullscreen() },
+  glossary:  { fr: 'Glossaire mooré', run: () => { if (!ui.nav) toggleNav(); setNavTab('glossaire'); } },
+  mooreChars:{ fr: 'Caractères mooré…', glyph: 'ɛ', g: 'symbol', run: () => symbolDialog() },
+};
+
+/* ---------- Construction de l'interface ---------- */
+function label(c) { return mo(c.k) || c.fr; }
+
+function rb(act, opt = {}) {
+  const c = C[act];
+  const inner = opt.text ? `<span class="glyph" style="${opt.style || ''}">${opt.text}</span>` : c.icon ? ico(c.icon) : c.glyph ? `<span class="glyph">${c.glyph}</span>` : esc(c.fr);
+  const lbl = opt.big ? `<span data-lbl="${act}">${esc(mo(c.k) || opt.label || c.fr)}</span>` : (opt.label ? `<span>${esc(mo(c.k) || opt.label)}</span>` : '');
+  return `<button class="rb${opt.big ? ' big' : ''}" data-act="${act}" data-tip="${act}" aria-label="${esc(c.fr)}">${inner}${lbl}${opt.caret ? '<span class="caret">▾</span>' : ''}</button>`;
+}
+const seg = (...b) => `<span class="seg">${b.join('')}</span>`;
+const grp = (cap, body, capk = reg('g_' + slug(cap), cap)) => `<div class="grp"><div class="body">${body}</div><div class="cap" data-k="${capk}">${esc(mo(capk) || cap)}</div></div>`;
+const rows = (...r) => `<div class="rows">${r.map(x => `<div class="row">${x}</div>`).join('')}</div>`;
+
+const STYLES = [
+  { id: 'normal', fr: 'Normal', pv: 'AaBbCcDdEe', css: 'font-size:13px' },
+  { id: 'nospace', fr: 'Sans interligne', pv: 'AaBbCcDdEe', css: 'font-size:13px' },
+  { id: 'h1', fr: 'Titre 1', pv: 'AABBCC', css: 'font-size:13px;font-weight:700' },
+  { id: 'h2', fr: 'Titre 2', pv: 'AaBbCcDd', css: 'font-size:13px;font-weight:700;color:#1f3864' },
+  { id: 'h3', fr: 'Titre 3', pv: 'AaBbCcDd', css: 'font-size:13px;font-weight:700;font-style:italic' },
+  { id: 'title', fr: 'Titre', pv: 'AaBb', css: 'font-size:21px' },
+  { id: 'subtitle', fr: 'Sous-titre', pv: 'AaBbCcDd', css: 'font-size:12px;font-style:italic;color:#666' },
+  { id: 'quote', fr: 'Citation', pv: 'AaBbCcDd', css: 'font-size:12px;font-style:italic' },
+];
+
+function buildRibbon() {
+  const colorBtn = (act, menu, sw, text) => `<span class="seg"><button class="rb split" data-act="${act}" data-tip="${act}" aria-label="${esc(C[act].fr)}"><span class="colorbtn"><span class="glyph" style="font-weight:700">${text}</span><span class="swatch" id="sw-${act}"></span></span></button><button class="rb" style="min-width:16px;padding:0 2px" data-act="${menu}" data-tip="${menu}" aria-label="${esc(C[menu].fr)}"><span class="caret">▾</span></button></span>`;
+  const gallery = `<div class="gallery" role="listbox" aria-label="Styles">${STYLES.map(s => `<button class="sty" data-style="${s.id}" data-tip="style:${s.id}" role="option"><span class="pv" style="${s.css}">${s.pv}</span><span class="lb">${esc(t('st_' + s.id, s.fr))}</span></button>`).join('')}</div>`;
+  const P = {
+    home: [
+      grp('Presse-papiers', rb('paste', { big: true }) + rows(rb('cut'), rb('copy'), rb('painter')), 'clipboard'),
+      grp('Police', rows(
+        `<select class="rsel" id="fontname" data-tip="fontname" aria-label="Police">${FONTS.map(f => `<option style="font-family:'${f}'">${f}</option>`).join('')}</select><input class="rsel" id="fontsize" list="sizes" data-tip="fontsize" aria-label="Taille de police" inputmode="decimal"><datalist id="sizes">${SIZES.map(s => `<option value="${String(s).replace('.', ',')}">`).join('')}</datalist>` +
+        rb('grow', { text: 'A<sup style="font-size:9px">+</sup>' }) + rb('shrink', { text: 'A<sup style="font-size:9px">−</sup>', style: 'font-size:13px' }) + rb('casemenu', { text: 'Aa', caret: true }) + rb('clear', { text: 'A<span style="color:#d13438;font-size:11px">✕</span>' }),
+        seg(rb('bold', { text: 'G', style: 'font-weight:700' }), rb('italic', { text: 'I', style: 'font-style:italic' }), rb('underline', { text: 'S', style: 'text-decoration:underline' }), rb('strike', { text: 'abc', style: 'text-decoration:line-through;font-size:12px' })) +
+        seg(rb('sub', { text: 'X<sub style="font-size:9px">2</sub>' }), rb('sup', { text: 'X<sup style="font-size:9px">2</sup>' })) +
+        rb('effects', { text: 'A', style: 'color:#2b579a;text-shadow:0 0 2px #7fb2ff;font-weight:700', caret: true }) +
+        colorBtn('hilite', 'hilitemenu', '', '<span style="font-family:var(--ui);font-size:13px">✎</span>') + colorBtn('color', 'colormenu', '', 'A')
+      ), 'font'),
+      grp('Paragraphe', rows(
+        rb('ul') + rb('ol') + rb('outdent') + rb('indent') + rb('sort') + rb('marks', { text: '¶' }),
+        seg(rb('jl'), rb('jc'), rb('jr'), rb('jf')) + rb('linesp', { caret: true }) + rb('shading', { caret: true }) + rb('borders')
+      )),
+      grp('Styles', gallery, 'styles'),
+      grp('Édition', rows(rb('find', { label: 'Rechercher' }), rb('replace', { label: 'Remplacer' }), rb('selectall', { label: 'Sélectionner' })), 'm_edit'),
+    ],
+    insert: [
+      grp('Pages', rb('pagebreak', { big: true })),
+      grp('Tableaux', rb('table', { big: true, label: 'Tableau' }), 'table'),
+      grp('Illustrations', rb('image', { big: true }), 'illustrations'),
+      grp('Liens', rb('link', { big: true, label: 'Lien' }), 'links'),
+      grp('Commentaires', rb('comment', { big: true }), 'comment'),
+      grp('En-tête et pied', rows(rb('pagenums', { label: 'Numéros de page' }), rb('datetime', { label: 'Date et heure' }))),
+      grp('Texte', rows(rb('textbox', { label: mo('textbox') }), rb('caption', { label: mo('caption') })), 'writing'),
+      grp('Symboles', rows(rb('symbol', { label: mo('symbol') }), rb('equation', { label: mo('equation') }), rb('mooreChars', { label: 'Lettres mooré' })), 'symbol'),
+    ],
+    design: [
+      grp('Mise en forme du document', rb('docfont', { big: true, label: 'Police' }) + rb('parasp', { big: true, label: 'Espacement' }), 'docformat'),
+      grp('Arrière-plan', rb('pagecolor', { big: true, label: 'Couleur de page' }), 'background'),
+      grp('Interface', rb('theme', { big: true, label: 'Thème' }), 'theme'),
+    ],
+    layout: [
+      grp('Mise en page', rb('margins', { big: true, label: 'Marges' }) + rb('orient', { big: true, label: 'Orientation' }) + `<span class="note">Format du papier : A4 (21 × 29,7 cm)</span>`, 't_layout'),
+      grp('Pages', rb('pagebreak', { big: true })),
+    ],
+    refs: [
+      grp('Table des matières', rb('toc', { big: true }) + rb('tocupdate', { label: 'Mettre à jour' }), 'toc'),
+      grp('Notes', rb('footnote', { big: true })),
+      grp('Légendes', rb('caption', { big: true }), 'captions'),
+    ],
+    mail: [
+      `<p class="note">Le publipostage (lettres, enveloppes et étiquettes en série) n’est pas disponible dans cette version légère de Gom-biisi.</p>`,
+    ],
+    review: [
+      grp('Vérification', rb('stats', { big: true }) + rb('spell', { big: true, label: 'Orthographe' }), 'proofing'),
+      grp('Langue', rb('language', { big: true }), 'language'),
+      grp('Commentaires', rb('comment', { big: true }) + rb('delcomments', { big: true, label: 'Tout supprimer' }), 'comment'),
+      grp('Protéger', rb('readonly', { big: true, label: 'Lecture seule' }), 'readonly'),
+    ],
+    view: [
+      grp('Afficher', rows(rb('navpane', { label: 'Volet de navigation' }), rb('ruler', { label: 'Règle' }), rb('marks', { label: 'Marques ¶', text: '¶' })), 'show'),
+      grp('Zoom', rb('onepage', { big: true }) + rb('twopages', { big: true }) + rb('pagewidth', { big: true }) + rows(rb('zoomin'), rb('zoomout'), rb('zoom100')), 'zoom'),
+      grp('Fenêtre', rb('fullscreen', { big: true }), 'm_window'),
+    ],
+  };
+  $('#ribbon').innerHTML = Object.entries(P).map(([id, g]) => `<div class="panel" data-panel="${id}" role="tabpanel" hidden>${g.join('')}</div>`).join('');
+  $('#fontsize').value = '12';
+  paintSwatches();
+}
+
+for (const c of Object.values(C)) {
+  if (!c.k) c.k = reg('c_' + slug(c.fr), c.fr);
+  if (c.g && !GL[c.g]) c.g = reg('g_' + slug(c.g), c.g);
+}
+const TABS = [['file', 't_file', 'Fichier'], ['home', 't_home', 'Accueil'], ['insert', 'insert', 'Insertion'], ['design', 't_design', 'Création'], ['layout', 't_layout', 'Mise en page'], ['refs', 't_refs', 'Références'], ['mail', 't_mail', 'Publipostage'], ['review', 't_review', 'Révision'], ['view', 'view', 'Affichage']];
+function buildTabs() {
+  $('#tabs').innerHTML = TABS.map(([id, k, fr]) => `<button class="tab${id === 'file' ? ' file' : ''}" role="tab" data-tabid="${id}" data-tip="tab:${id}" aria-selected="false">${esc(mo(k) || fr)}</button>`).join('') +
+    `<button class="tb" id="ribbontoggle" data-tip="ribbontoggle" aria-label="Réduire le ruban" style="color:var(--chrome-ink)">${ico('up')}</button>`;
+  selectTab(ui.tab);
+}
+function selectTab(id) {
+  if (id === 'file') { openBackstage('info'); return; }
+  ui.tab = id; saveUi();
+  $$('#tabs .tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.tabid === id)));
+  $$('#ribbon .panel').forEach(p => { p.hidden = p.dataset.panel !== id; });
+  if (!ui.ribbon) { ui.ribbon = true; applyUi(); }
+}
+
+const MENUS = [
+  { fr: 'Gom-biisi', brand: true, items: ['about', 'glossary', 'shortcuts', '-', 'theme'] },
+  { k: 'm_file', fr: 'Fichier', items: ['newdoc', 'open', '-', 'save', 'saveas', 'export', 'exportdoc', '-', 'print', 'info'] },
+  { k: 'm_edit', fr: 'Édition', items: ['undo', 'redo', '-', 'cut', 'copy', 'paste', '-', 'selectall', 'find', 'replace'] },
+  { k: 'view', fr: 'Affichage', items: ['navpane', 'ruler', 'marks', '-', 'onepage', 'twopages', 'pagewidth', '-', 'zoomin', 'zoomout', 'zoom100'] },
+  { k: 'insert', fr: 'Insertion', items: ['pagebreak', 'pagenums', 'datetime', '-', 'comment', 'footnote', 'caption', 'toc', '-', 'image', 'textbox', 'symbol', 'equation', '-', 'table', 'link'] },
+  { k: 'mn_format', fr: 'Format', items: ['bold', 'italic', 'underline', 'strike', 'sub', 'sup', '-', 'style:normal', 'style:h1', 'style:h2', 'style:title', 'style:quote', '-', 'clear'] },
+  { k: 'mn_outils', fr: 'Outils', items: ['stats', 'spell', 'language', '-', 'mooreChars', 'replace', 'glossary'] },
+  { k: 'table', fr: 'Tableau', items: ['table', '-', 'rowabove', 'rowbelow', 'colleft', 'colright', '-', 'delrow', 'delcol', 'deltable'] },
+  { k: 'm_window', fr: 'Fenêtre', items: ['navpane', 'fullscreen', 'theme'] },
+  { k: 'mn_aide', fr: 'Aide', items: ['shortcuts', 'about'] },
+];
+MENUS.forEach(m => { if (m.k && !GL[m.k]) reg(m.k, m.fr); });
+function buildMenubar() {
+  $('#menubar').innerHTML = MENUS.map((m, i) => `<button class="mb${m.brand ? ' brand' : ''}" data-menu="${i}" data-tip="${m.k ? 'menu:' + m.k : ''}" aria-haspopup="true" aria-expanded="false">${esc(mo(m.k) || m.fr)}</button>`).join('') + '<span id="clock"></span>';
+}
+function menuItemsFor(list) {
+  return list.map(a => {
+    if (a === '-') return '-';
+    if (a.startsWith('style:')) { const s = STYLES.find(x => x.id === a.slice(6)); return { k: reg('st_' + s.id, s.fr), fr: 'Style ' + s.fr, run: () => applyStyle(s.id) }; }
+    const c = C[a];
+    return { k: c.k, suf: c.suf, fr: c.fr, run: el => c.run(el), chk: c.chk, sub: ['theme'].includes(a) };
+  });
+}
+
+/* ---------- Menus déroulants et palettes ---------- */
+let openMenuEl = null, openMenuAnchor = null;
+function closeMenu() {
+  if (openMenuEl) { openMenuEl.remove(); openMenuEl = null; }
+  if (openMenuAnchor) { openMenuAnchor.setAttribute('aria-expanded', 'false'); openMenuAnchor = null; }
+}
+function placeMenu(m, anchor) {
+  document.body.appendChild(m);
+  const r = anchor.getBoundingClientRect();
+  const w = m.offsetWidth, h = m.offsetHeight;
+  let x = Math.min(r.left, innerWidth - w - 8), y = r.bottom + 4;
+  if (y + h > innerHeight - 8) y = Math.max(8, r.top - h - 4);
+  m.style.left = Math.max(8, x) + 'px'; m.style.top = y + 'px';
+}
+function openMenu(anchor, items) {
+  const again = openMenuAnchor === anchor;
+  closeMenu();
+  if (again) return;
+  saveSel();
+  const m = document.createElement('div');
+  m.className = 'menu'; m.setAttribute('role', 'menu');
+  items.forEach(it => {
+    if (it === '-') { m.appendChild(document.createElement('hr')); return; }
+    const b = document.createElement('button');
+    b.setAttribute('role', 'menuitem'); b.title = it.fr.replace(/…$/, '');
+    const moL = mo(it.k);
+    const chk = it.chk ? (it.chk() ? 'chk' : 'unchk') : '';
+    b.innerHTML = moL
+      ? `<span class="only mo ${chk}">${esc(moL + (it.suf || ''))}</span>${it.sub ? '<span class="fr">▸</span>' : ''}`
+      : `<span class="only ${chk}">${esc(it.fr)}</span>${it.sub ? '<span class="fr">▸</span>' : ''}`;
+    b.addEventListener('mousedown', e => e.preventDefault());
+    b.addEventListener('click', () => { const a = anchor; closeMenu(); it.run(a); });
+    m.appendChild(b);
+  });
+  placeMenu(m, anchor);
+  openMenuEl = m; openMenuAnchor = anchor; anchor.setAttribute('aria-expanded', 'true');
+}
+function openPalette(anchor, colors, pick) {
+  const again = openMenuAnchor === anchor;
+  closeMenu();
+  if (again) return;
+  saveSel();
+  const m = document.createElement('div');
+  m.className = 'menu'; m.style.minWidth = '0';
+  m.innerHTML = `<div class="pal">${colors.map(c => `<button data-c="${c}" title="${c === 'transparent' ? 'Aucune couleur' : c}" style="background:${c === 'transparent' ? 'linear-gradient(45deg,#fff 45%,#d13438 45% 55%,#fff 55%)' : c}"></button>`).join('')}</div>`;
+  m.addEventListener('mousedown', e => e.preventDefault());
+  m.addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (!b) return; closeMenu(); pick(b.dataset.c); });
+  placeMenu(m, anchor);
+  openMenuEl = m; openMenuAnchor = anchor;
+}
+function paintSwatches() {
+  const h = $('#sw-hilite'), c = $('#sw-color');
+  if (h) h.style.background = ui.hilite || '#ffff00';
+  if (c) c.style.background = ui.color || '#c00000';
+}
+
+/* ---------- Bulles d'aide (libellé mooré + équivalent français) ---------- */
+let tipTimer = null;
+function tipHtml(key) {
+  let fr, k, g, keys;
+  if (key.startsWith('style:')) { const s = STYLES.find(x => x.id === key.slice(6)); fr = 'Style « ' + s.fr + ' »'; g = 'styles'; k = 'st_' + s.id; }
+  else if (key.startsWith('tab:')) { const t = TABS.find(x => x[0] === key.slice(4)); fr = 'Onglet ' + t[2]; k = t[1]; }
+  else if (key.startsWith('menu:')) { k = key.slice(5); fr = 'Menu ' + GL[k].fr; }
+  else if (key === 'fontname') { fr = 'Police'; g = 'font'; k = 'font'; }
+  else if (key === 'fontsize') { fr = 'Taille de police'; g = 'font'; k = 'fontsize'; }
+  else if (key === 'ribbontoggle') { fr = ui.ribbon ? 'Réduire le ruban' : 'Afficher le ruban'; }
+  else { const c = C[key]; if (!c) return ''; fr = c.fr.replace(/…$/, ''); k = c.k; g = c.g; keys = c.key; }
+  const m = mo(k);
+  let h = `<b>${esc(fr)}${keys ? ` <span class="muted" style="font-weight:400">(${esc(keys)})</span>` : ''}</b>`;
+  h += m ? `<div>Mooré : <span class="mo">${esc(m)}</span></div>` : `<div class="muted">${NO_MO}</div>`;
+  const n = k && GL[k] && GL[k].note;
+  if (k && GL[k] && GL[k].def && m) h += `<div class="muted" lang="mos">${esc(GL[k].def)}</div>`;
+  if (n && m && (n[1] || n[0])) h += `<div class="muted">${n[1] ? `Sens littéral : « ${esc(n[1])} »` : `/ ${esc(n[0])} /`}</div>`;
+  if (g) {
+    const gm = mo(g), gf = GL[g] ? GL[g].fr.toLowerCase() : g;
+    h += `<div class="g">Groupe : ${gm ? `<b>${esc(gm)}</b> « ${esc(gf)} »` : esc(gf)}</div>`;
+  }
+  return h;
+}
+document.addEventListener('mouseover', e => {
+  const el = e.target.closest && e.target.closest('[data-tip]');
+  clearTimeout(tipTimer);
+  const tip = $('#tip');
+  if (!el || !el.dataset.tip || openMenuEl) { tip.hidden = true; return; }
+  tipTimer = setTimeout(() => {
+    const h = tipHtml(el.dataset.tip);
+    if (!h) return;
+    tip.innerHTML = h; tip.hidden = false;
+    const r = el.getBoundingClientRect();
+    const x = Math.min(Math.max(8, r.left), innerWidth - tip.offsetWidth - 8);
+    let y = r.bottom + 8;
+    if (y + tip.offsetHeight > innerHeight - 8) y = r.top - tip.offsetHeight - 8;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }, 450);
+});
+document.addEventListener('mousedown', () => { clearTimeout(tipTimer); $('#tip').hidden = true; }, true);
+
+/* ---------- Sélection et commandes d'édition ---------- */
+function inDoc(node) { return node && (node === doc || doc.contains(node)); }
+function saveSel() {
+  const s = getSelection();
+  if (s.rangeCount && inDoc(s.getRangeAt(0).commonAncestorContainer)) savedRange = s.getRangeAt(0).cloneRange();
+}
+function restoreSel() {
+  doc.focus({ preventScroll: true });
+  const s = getSelection();
+  if (savedRange && inDoc(savedRange.commonAncestorContainer)) { s.removeAllRanges(); s.addRange(savedRange); }
+  else if (!s.rangeCount || !inDoc(s.getRangeAt(0).commonAncestorContainer)) {
+    const r = document.createRange(); r.selectNodeContents(doc); r.collapse(false); s.removeAllRanges(); s.addRange(r);
+  }
+}
+function guard() { if (readOnly) { toast('Le document est en lecture seule. Désactivez la protection pour le modifier.'); return false; } return true; }
+function exec(cmd, val) {
+  if (!['copy', 'selectAll'].includes(cmd) && !guard()) return false;
+  restoreSel();
+  let ok = false;
+  try { ok = document.execCommand(cmd, false, val); } catch (e) { ok = false; }
+  if (!ok && (cmd === 'cut' || cmd === 'copy')) toast(`Utilisez ${isMac() ? '⌘' : 'Ctrl'}+${cmd === 'cut' ? 'X' : 'C'} pour ${cmd === 'cut' ? 'couper' : 'copier'}.`);
+  saveSel();
+  if (!['copy', 'selectAll'].includes(cmd)) changed();
+  refreshState();
+  return ok;
+}
+const isMac = () => /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+function selectedBlocks() {
+  if (!savedRange) return [];
+  return [...doc.children].filter(el => savedRange.intersectsNode(el));
+}
+function blockStyle(prop, val) {
+  if (!guard()) return;
+  const bl = selectedBlocks();
+  if (!bl.length) { toast('Placez le curseur dans un paragraphe.'); return; }
+  bl.forEach(b => { b.style[prop] = val; });
+  changed();
+}
+function toggleBorder() {
+  if (!guard()) return;
+  const bl = selectedBlocks();
+  if (!bl.length) return;
+  const on = !bl[0].style.border;
+  bl.forEach(b => { b.style.border = on ? '1px solid #444' : ''; b.style.padding = on ? '2pt 5pt' : ''; });
+  changed();
+}
+function sortBlocks() {
+  if (!guard()) return;
+  const bl = selectedBlocks().filter(b => b.textContent.trim());
+  if (bl.length < 2) { toast('Sélectionnez au moins deux paragraphes à trier.'); return; }
+  const anchor = bl[bl.length - 1].nextSibling;
+  const sorted = [...bl].sort((a, b) => a.textContent.trim().localeCompare(b.textContent.trim(), 'fr', { sensitivity: 'base' }));
+  sorted.forEach(b => doc.insertBefore(b, anchor));
+  changed();
+  toast(`${bl.length} paragraphes triés de A à Z.`);
+}
+function applyStyle(id) {
+  if (!guard()) return;
+  const map = { normal: ['p', ''], nospace: ['p', 'gb-nospace'], h1: ['h1', ''], h2: ['h2', ''], h3: ['h3', ''], title: ['h1', 'gb-title'], subtitle: ['p', 'gb-subtitle'], quote: ['blockquote', ''] };
+  const [tag, cls] = map[id];
+  exec('formatBlock', `<${tag}>`);
+  saveSel();
+  const bl = selectedBlocks().length ? selectedBlocks() : [];
+  bl.forEach(b => {
+    b.classList.remove('gb-nospace', 'gb-title', 'gb-subtitle');
+    if (cls && b.tagName.toLowerCase() === tag) b.classList.add(cls);
+    if (!b.getAttribute('class')) b.removeAttribute('class');
+  });
+  changed(); refreshState();
+}
+function setFontSize(pt) {
+  if (!guard()) return;
+  pt = Math.max(1, Math.min(400, pt));
+  restoreSel();
+  const s = getSelection();
+  if (s.isCollapsed) { toast('Sélectionnez le texte dont vous voulez changer la taille.'); return; }
+  document.execCommand('styleWithCSS', false, true);
+  document.execCommand('fontSize', false, '7');
+  $$('span[style*="xxx-large"]', doc).forEach(sp => { sp.style.fontSize = pt + 'pt'; });
+  $$('font[size="7"]', doc).forEach(f => { const sp = document.createElement('span'); sp.style.fontSize = pt + 'pt'; while (f.firstChild) sp.appendChild(f.firstChild); f.replaceWith(sp); });
+  saveSel(); changed(); refreshState();
+}
+function currentSize() {
+  const el = anchorEl();
+  return el ? Math.round(parseFloat(getComputedStyle(el).fontSize) * 0.75 * 2) / 2 : 12;
+}
+function stepSize(dir) {
+  const cur = currentSize();
+  const next = dir > 0 ? SIZES.find(s => s > cur) || cur + 10 : [...SIZES].reverse().find(s => s < cur) || Math.max(1, cur - 1);
+  setFontSize(next);
+}
+function anchorEl() {
+  const r = savedRange;
+  if (!r) return null;
+  let n = r.startContainer;
+  if (n.nodeType === 3) n = n.parentElement;
+  else if (n.childNodes[r.startOffset] && n.childNodes[r.startOffset].nodeType === 1) n = n.childNodes[r.startOffset];
+  return inDoc(n) ? n : doc;
+}
+function selectionHtml() {
+  if (!savedRange || savedRange.collapsed) return '';
+  const d = document.createElement('div'); d.appendChild(savedRange.cloneContents()); return d.innerHTML;
+}
+function wrapSelection(css) {
+  if (!guard()) return;
+  const h = selectionHtml();
+  if (!h) { toast('Sélectionnez d’abord du texte.'); return; }
+  exec('insertHTML', `<span style="${css}">${h}</span>`);
+}
+function caseItems() {
+  const t = f => () => {
+    if (!guard()) return;
+    restoreSel(); const txt = getSelection().toString();
+    if (!txt) { toast('Sélectionnez d’abord du texte.'); return; }
+    exec('insertText', f(txt));
+  };
+  return [
+    { fr: 'Majuscule en début de phrase', run: t(s => s.toLocaleLowerCase('fr').replace(/(^\s*|[.!?]\s+)(\p{L})/gu, (m, a, b) => a + b.toLocaleUpperCase('fr'))) },
+    { fr: 'minuscules', run: t(s => s.toLocaleLowerCase('fr')) },
+    { fr: 'MAJUSCULES', run: t(s => s.toLocaleUpperCase('fr')) },
+    { fr: 'Majuscule En Début De Mot', run: t(s => s.toLocaleLowerCase('fr').replace(/(^|[\s'’(-])(\p{L})/gu, (m, a, b) => a + b.toLocaleUpperCase('fr'))) },
+    { fr: 'iNVERSER lA cASSE', run: t(s => [...s].map(c => c === c.toLocaleUpperCase('fr') ? c.toLocaleLowerCase('fr') : c.toLocaleUpperCase('fr')).join('')) },
+  ];
+}
+function effectItems() {
+  return [
+    { fr: 'Ombre', run: () => wrapSelection('text-shadow:1px 1px 2px rgba(0,0,0,.35)') },
+    { fr: 'Lueur bleue', run: () => wrapSelection('text-shadow:0 0 4px #7fb2ff') },
+    { fr: 'Contour', run: () => wrapSelection('color:#ffffff;-webkit-text-stroke:0.8px #1f3864') },
+    { fr: 'Petites majuscules', run: () => wrapSelection('font-variant:small-caps') },
+    '-',
+    { fr: 'Effacer la mise en forme', run: () => exec('removeFormat') },
+  ];
+}
+function togglePainter() {
+  if (painter) { painter = null; toast('Reproduction de la mise en forme annulée.'); refreshState(); return; }
+  const el = anchorEl();
+  if (!el) { toast('Placez d’abord le curseur dans le texte modèle.'); return; }
+  const cs = getComputedStyle(el);
+  painter = {
+    bold: parseInt(cs.fontWeight, 10) >= 600, italic: cs.fontStyle === 'italic',
+    underline: cs.textDecorationLine.includes('underline'), strike: cs.textDecorationLine.includes('line-through'),
+    color: cs.color, family: cs.fontFamily.split(',')[0].replace(/["']/g, '').trim(), size: Math.round(parseFloat(cs.fontSize) * 0.75 * 2) / 2,
+  };
+  toast('Sélectionnez maintenant le texte auquel appliquer cette mise en forme.');
+  refreshState();
+}
+function applyPainter() {
+  const p = painter; painter = null;
+  saveSel();
+  exec('removeFormat');
+  if (p.bold) exec('bold'); if (p.italic) exec('italic');
+  if (p.underline) exec('underline'); if (p.strike) exec('strikeThrough');
+  exec('foreColor', p.color); exec('fontName', p.family);
+  setFontSize(p.size);
+  refreshState();
+}
+async function pasteButton() {
+  if (!guard()) return;
+  restoreSel();
+  try {
+    const txt = await navigator.clipboard.readText();
+    if (txt) { restoreSel(); document.execCommand('insertText', false, txt); changed(); return; }
+    toast('Le presse-papiers est vide.');
+  } catch (e) {
+    toast(`Pour coller, utilisez ${isMac() ? '⌘' : 'Ctrl'}+V ou le clic droit › Coller.`);
+  }
+}
+
+/* ---------- Nettoyage du HTML (collage, ouverture, chargement) ---------- */
+const OK_TAGS = new Set(['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'strike', 'del', 'sub', 'sup', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'blockquote', 'table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th', 'caption', 'a', 'img', 'span', 'div', 'hr', 'mark', 'small', 'code', 'pre']);
+const DROP_TAGS = new Set(['script', 'style', 'meta', 'link', 'title', 'head', 'iframe', 'object', 'embed', 'svg', 'math', 'noscript', 'template', 'form', 'input', 'button', 'select', 'textarea', 'video', 'audio', 'canvas', 'xml']);
+const OK_CSS = new Set(['font-weight', 'font-style', 'text-decoration', 'text-decoration-line', 'color', 'background-color', 'font-size', 'font-family', 'text-align', 'line-height', 'margin-left', 'padding-left', 'text-indent', 'vertical-align', 'text-shadow', '-webkit-text-stroke', 'font-variant', 'border', 'padding', 'width', 'display', 'margin', 'text-transform']);
+function cleanCss(style) {
+  const out = [];
+  style.split(';').forEach(d => {
+    const i = d.indexOf(':'); if (i < 0) return;
+    const p = d.slice(0, i).trim().toLowerCase(), v = d.slice(i + 1).trim();
+    if (OK_CSS.has(p) && !/url\(|expression|javascript:|@import/i.test(v) && v.length < 200) out.push(`${p}:${v}`);
+  });
+  return out.join(';');
+}
+function sanitize(html) {
+  const tpl = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html').body;
+  const walk = node => {
+    [...node.childNodes].forEach(ch => {
+      if (ch.nodeType === 8) { ch.remove(); return; }
+      if (ch.nodeType !== 1) return;
+      let tag = ch.tagName.toLowerCase();
+      if (DROP_TAGS.has(tag) || tag.includes(':')) { if (tag.includes(':') && tag !== 'o:p') { walk(ch); ch.replaceWith(...ch.childNodes); } else ch.remove(); return; }
+      if (tag === 'font') {
+        const sp = document.createElement('span');
+        if (ch.getAttribute('color')) sp.style.color = ch.getAttribute('color');
+        if (ch.getAttribute('face')) sp.style.fontFamily = ch.getAttribute('face');
+        while (ch.firstChild) sp.appendChild(ch.firstChild);
+        ch.replaceWith(sp); walk(sp); return;
+      }
+      if (!OK_TAGS.has(tag)) { walk(ch); ch.replaceWith(...ch.childNodes); return; }
+      for (const a of [...ch.attributes]) {
+        const n = a.name.toLowerCase(), v = a.value;
+        if (n === 'class') {
+          const c = v.split(/\s+/).filter(x => /^gb-[a-z-]+$/.test(x));
+          if (c.length) ch.setAttribute('class', c.join(' ')); else ch.removeAttribute('class');
+          continue;
+        }
+        if (n === 'style') { const c = cleanCss(v); if (c) ch.setAttribute('style', c); else ch.removeAttribute('style'); continue; }
+        let keep = false;
+        if (n === 'href' && tag === 'a') keep = /^(https?:|mailto:|#)/i.test(v.trim());
+        else if (n === 'src' && tag === 'img') keep = /^(data:image\/(png|jpe?g|gif|webp);|https:)/i.test(v.trim());
+        else if (['alt', 'colspan', 'rowspan', 'title', 'data-comment', 'data-fn'].includes(n)) keep = true;
+        else if (n === 'contenteditable' && v === 'false' && /(^|\s)gb-toc(\s|$)/.test(ch.getAttribute('class') || '')) keep = true;
+        if (!keep) ch.removeAttribute(a.name);
+      }
+      if (tag === 'img' && !ch.getAttribute('src')) { ch.remove(); return; }
+      if (tag === 'a') { ch.setAttribute('target', '_blank'); ch.setAttribute('rel', 'noopener noreferrer'); }
+      walk(ch);
+    });
+  };
+  walk(tpl);
+  return tpl.innerHTML;
+}
+
+/* ---------- Mise en page A4 (colonnes CSS = pages) ---------- */
+const MM = 96 / 25.4, GAP = 26;
+function geom() {
+  let pw = 210 * MM, ph = 297 * MM;
+  if (S.orient === 'landscape') [pw, ph] = [ph, pw];
+  return { pw, ph, m: S.margin * 10 * MM, G: GAP };
+}
+function applyCols(n) {
+  const { pw, ph, m, G } = geom();
+  doc.style.columnCount = n;
+  doc.style.columnGap = (2 * m + G) + 'px';
+  doc.style.padding = m + 'px';
+  doc.style.height = (ph - 2 * m) + 'px';
+  doc.style.width = (n * pw + (n - 1) * G - 2 * m) + 'px';
+}
+const overflowing = () => doc.scrollWidth > doc.clientWidth + 2;
+let layoutQueued = false;
+function scheduleLayout() {
+  if (layoutQueued) return;
+  layoutQueued = true;
+  requestAnimationFrame(() => { layoutQueued = false; layout(); });
+}
+function layout() {
+  let n = Math.max(1, nPages);
+  applyCols(n);
+  let g = 0;
+  while (overflowing() && g++ < 600) applyCols(++n);
+  while (n > 1) { applyCols(n - 1); if (overflowing()) { applyCols(n); break; } n--; }
+  doc.scrollLeft = 0; doc.scrollTop = 0;
+  nPages = n;
+  drawSheets();
+  updateStatus();
+}
+function drawSheets() {
+  const { pw, ph, G } = geom();
+  pagesEl.style.width = (nPages * pw + (nPages - 1) * G) + 'px';
+  pagesEl.style.height = ph + 'px';
+  $('#ruler').style.width = pagesEl.style.width;
+  const hdr = `Gom-biisi — ${esc(mo('writing') || 'écriture')}`;
+  let h = '';
+  for (let i = 0; i < nPages; i++) {
+    h += `<div class="sheet" style="left:${i * (pw + G)}px;width:${pw}px;height:${ph}px;background:${S.pageColor}"><div class="hdr">${hdr}</div>${S.pageNumbers ? `<div class="ftr">${i + 1}</div>` : ''}</div>`;
+  }
+  sheets.innerHTML = h;
+  drawRuler();
+}
+function drawRuler() {
+  const cv = $('#rulercv');
+  $('#ruler').hidden = !ui.ruler;
+  if (!ui.ruler) return;
+  const { pw, m } = geom();
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(pw * dpr); cv.height = 22 * dpr;
+  cv.style.width = pw + 'px'; cv.style.height = '22px';
+  const x = cv.getContext('2d');
+  x.scale(dpr, dpr);
+  const cs = getComputedStyle(document.documentElement);
+  x.fillStyle = cs.getPropertyValue('--ribbon-line').trim() || '#ccc';
+  x.fillRect(0, 3, pw, 16);
+  x.fillStyle = cs.getPropertyValue('--dialog').trim() || '#fff';
+  x.fillRect(m, 3, pw - 2 * m, 16);
+  x.fillStyle = cs.getPropertyValue('--ribbon-ink-2').trim() || '#666';
+  x.strokeStyle = x.fillStyle;
+  x.font = '9px sans-serif'; x.textAlign = 'center';
+  const cm = 10 * MM;
+  for (let i = -Math.floor(m / (cm / 4)); m + i * cm / 4 <= pw; i++) {
+    const px = m + i * cm / 4;
+    if (px < 0) continue;
+    if (i % 4 === 0) { if (i !== 0) x.fillText(String(Math.abs(i / 4)), px, 15); }
+    else { const len = i % 2 === 0 ? 5 : 3; x.beginPath(); x.moveTo(px + .5, 11 - len / 2); x.lineTo(px + .5, 11 + len / 2); x.stroke(); }
+  }
+  x.fillStyle = cs.getPropertyValue('--accent').trim() || '#2b579a';
+  x.beginPath(); x.moveTo(m - 4, 3); x.lineTo(m + 4, 3); x.lineTo(m, 8); x.fill();
+}
+
+/* ---------- Zoom ---------- */
+function setZoom(z) {
+  zoom = Math.max(30, Math.min(200, Math.round(z)));
+  zoomer.style.zoom = zoom / 100;
+  $('#zoomrange').value = zoom;
+  $('#st-zval').textContent = zoom + ' %';
+  ui.zoom = zoom; saveUi();
+  $('#st-one').classList.toggle('on', ui.fit === 'one');
+  $('#st-two').classList.toggle('on', ui.fit === 'two');
+}
+function fitZoom(mode) {
+  const { pw, ph, G } = geom();
+  const W = work.clientWidth - 60, H = work.clientHeight - 70;
+  let z = 100;
+  if (mode === 'one') z = Math.min(W / pw, H / (ph + 32)) * 100;
+  else if (mode === 'two') z = Math.min(1, W / (2 * pw + G)) * 100;
+  else z = Math.min(1.2, (work.clientWidth - (innerWidth < 760 ? 26 : 60)) / pw) * 100;
+  ui.fit = mode;
+  setZoom(Math.floor(z));
+}
+
+/* ---------- Barre d'état, curseur, page courante ---------- */
+function caretRect() {
+  const s = getSelection();
+  if (!s.rangeCount || !inDoc(s.anchorNode)) return null;
+  const r = s.getRangeAt(0).cloneRange(); r.collapse(true);
+  let rect = r.getClientRects()[0];
+  if (!rect) { let n = r.startContainer; if (n.nodeType === 3) n = n.parentElement; if (n.childNodes && n.childNodes[r.startOffset] && n.childNodes[r.startOffset].nodeType === 1) n = n.childNodes[r.startOffset]; rect = n.getBoundingClientRect(); }
+  return rect;
+}
+function pageOfRect(rect) {
+  const { pw, G } = geom();
+  const base = pagesEl.getBoundingClientRect();
+  const scale = base.width / (nPages * pw + (nPages - 1) * G) || 1;
+  return Math.min(nPages, Math.max(1, Math.floor((rect.left - base.left) / ((pw + G) * scale)) + 1));
+}
+function counts() {
+  const text = doc.innerText || '';
+  const words = (text.match(/[\p{L}\p{N}][\p{L}\p{N}\p{M}'’-]*/gu) || []).length;
+  const chars = [...text.replace(/\n/g, '')].length;
+  const noSp = [...text.replace(/\s/g, '')].length;
+  const paras = $$('p,h1,h2,h3,h4,li,blockquote', doc).filter(e => e.textContent.trim()).length;
+  return { words, chars, noSp, paras, objects: $$('img,table', doc).length };
+}
+const nf = new Intl.NumberFormat('fr-FR');
+function updateStatus() {
+  const r = caretRect();
+  const p = r ? pageOfRect(r) : 1;
+  $('#st-page').textContent = `${t('ui_page', 'Page')} ${p} / ${nPages}`;
+  const c = counts();
+  $('#st-words').textContent = `${nf.format(c.words)} ${t('ui_mots', 'mots')}`;
+  $('#st-chars').textContent = `${nf.format(c.chars)} ${t('ui_caracteres', 'caractères')}`;
+}
+function ensureCaretVisible() {
+  const r = caretRect();
+  if (!r || (!r.width && !r.height && !r.left)) return;
+  const w = work.getBoundingClientRect();
+  if (r.left < w.left + 20) work.scrollLeft -= (w.left + 60 - r.left);
+  else if (r.right > w.right - 20) work.scrollLeft += (r.right - w.right + 60);
+  if (r.top < w.top + 10) work.scrollTop -= (w.top + 40 - r.top);
+  else if (r.bottom > w.bottom - 10) work.scrollTop += (r.bottom - w.bottom + 40);
+}
+function refreshState() {
+  $$('[data-act]').forEach(b => {
+    const c = C[b.dataset.act];
+    if (!c) return;
+    let on = false;
+    if (c.state) { try { on = document.queryCommandState(c.state); } catch (e) { on = false; } }
+    else if (c.chk) on = !!c.chk();
+    b.classList.toggle('on', on);
+    if (b.classList.contains('tb')) b.setAttribute('aria-pressed', String(on));
+  });
+  const el = anchorEl();
+  if (el) {
+    const cs = getComputedStyle(el);
+    const fam = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim();
+    const sel = $('#fontname');
+    if (sel && document.activeElement !== sel) sel.value = FONTS.includes(fam) ? fam : (fam === 'Tinos' ? 'Times New Roman' : sel.value);
+    const fs = $('#fontsize');
+    if (fs && document.activeElement !== fs) fs.value = String(currentSize()).replace('.', ',');
+    const blk = el.closest('h1,h2,h3,blockquote,p,li');
+    let sid = 'normal';
+    if (blk) {
+      const t = blk.tagName.toLowerCase();
+      sid = t === 'h1' ? (blk.classList.contains('gb-title') ? 'title' : 'h1') : t === 'h2' ? 'h2' : t === 'h3' ? 'h3' : t === 'blockquote' ? 'quote' : blk.classList.contains('gb-nospace') ? 'nospace' : blk.classList.contains('gb-subtitle') ? 'subtitle' : 'normal';
+    }
+    $$('.sty').forEach(b => b.classList.toggle('on', b.dataset.style === sid));
+  }
+}
+
+/* ---------- Enregistrement dans le navigateur ---------- */
+function uid() { return 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function serialize() {
+  const c = doc.cloneNode(true);
+  $$('.gb-selimg', c).forEach(i => { i.classList.remove('gb-selimg'); if (!i.getAttribute('class')) i.removeAttribute('class'); });
+  return c.innerHTML;
+}
+let saveTimer = null;
+function changed() {
+  dirty = true;
+  setSaveState();
+  scheduleLayout();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveNow(false), 900);
+  debounceNav();
+}
+function setSaveState(err) {
+  const el = $('#savestate');
+  el.classList.toggle('dirty', dirty || !!err);
+  el.textContent = err ? 'Échec : stockage du navigateur plein' : dirty ? '● Modifications non enregistrées' : '✓ ' + t('ui_enregistre', 'Enregistré dans ce navigateur');
+}
+function saveNow(manual) {
+  clearTimeout(saveTimer);
+  if (!current) return;
+  current.html = serialize();
+  current.settings = S;
+  current.modified = Date.now();
+  docs[current.id] = current;
+  const ok = store.set('gombiisi.docs', docs) && store.set('gombiisi.courant', current.id);
+  if (ok) { dirty = false; setSaveState(); if (manual) toast('Document enregistré dans ce navigateur.'); }
+  else { setSaveState(true); if (manual) toast('Enregistrement impossible : le stockage du navigateur est plein ou bloqué. Exportez le document en HTML.'); }
+}
+function loadDoc(d) {
+  current = d;
+  S = { ...DEFAULT_SETTINGS, ...(d.settings || {}) };
+  doc.innerHTML = sanitize(d.html || '') || '<p><br></p>';
+  savedRange = null; nPages = 1; dirty = false;
+  applySettings();
+  $('#titletext').textContent = `${d.title} — Gom-biisi`;
+  document.title = `${d.title} — Gom-biisi`;
+  setSaveState();
+  layout();
+  runSearch();
+  renderNav();
+  work.scrollLeft = 0; work.scrollTop = 0;
+}
+function newDocument(skipConfirm) {
+  const go = () => {
+    if (current) saveNow(false);
+    const d = { id: uid(), title: 'Document sans titre', author: '', subject: '', keywords: '', html: '<p><br></p>', created: Date.now(), modified: Date.now(), settings: { ...DEFAULT_SETTINGS } };
+    docs[d.id] = d;
+    loadDoc(d); saveNow(false);
+    closeBackstage();
+    doc.focus();
+    toast('Nouveau document créé.');
+  };
+  if (skipConfirm) go(); else go();
+}
+function applySettings() {
+  doc.style.fontFamily = `'${S.font}', ${S.font === 'Times New Roman' ? "Tinos, 'Noto Serif', serif" : "'Noto Sans', sans-serif"}`;
+  doc.classList.toggle('spacing-none', S.spacing === 'none');
+  doc.classList.toggle('spacing-wide', S.spacing === 'wide');
+  doc.spellcheck = !!S.spell;
+  doc.lang = S.lang === 'mos' ? 'mos' : 'fr';
+  $('#st-lang span:last-child').textContent = S.lang === 'mos' ? 'Mooré (Burkina Faso)' : 'Français (France)';
+}
+function settingsChanged() { applySettings(); changed(); layout(); refreshState(); }
+
+/* ---------- Recherche ---------- */
+let matches = [], cur = -1;
+const HL = typeof Highlight === 'function' && window.CSS && CSS.highlights;
+function runSearch(keepIndex) {
+  const q = $('#search').value.trim();
+  matches = [];
+  if (q) {
+    const fq = fold(q);
+    const tw = document.createTreeWalker(doc, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = tw.nextNode())) {
+      const data = n.data;
+      let f = '', map = [];
+      for (let i = 0; i < data.length; i++) {
+        const piece = fold(data[i]);
+        for (const ch of piece) { f += ch; map.push(i); }
+      }
+      let i = 0;
+      while (fq && (i = f.indexOf(fq, i)) > -1) {
+        const st = map[i];
+        let en = map[i + fq.length - 1] + 1;
+        while (en < data.length && /\p{M}/u.test(data[en])) en++;
+        const r = document.createRange(); r.setStart(n, st); r.setEnd(n, en);
+        matches.push(r); i += fq.length;
+      }
+    }
+  }
+  if (!keepIndex || cur >= matches.length) cur = matches.length ? 0 : -1;
+  paintMatches();
+  if (ui.navTab !== 'titres') renderNav();
+}
+function paintMatches() {
+  $('#searchcount').textContent = $('#search').value.trim() ? (matches.length ? `${cur + 1}/${matches.length}` : '0/0') : '';
+  if (!HL) return;
+  CSS.highlights.delete('gb-find'); CSS.highlights.delete('gb-current');
+  if (matches.length) {
+    CSS.highlights.set('gb-find', new Highlight(...matches));
+    if (cur >= 0) CSS.highlights.set('gb-current', new Highlight(matches[cur]));
+  }
+}
+function gotoMatch(i, select) {
+  if (!matches.length) return;
+  cur = (i + matches.length) % matches.length;
+  paintMatches();
+  const r = matches[cur].getBoundingClientRect(), w = work.getBoundingClientRect();
+  work.scrollLeft += r.left - w.left - w.width / 2;
+  work.scrollTop += r.top - w.top - w.height / 2;
+  if (select || !HL) { const s = getSelection(); s.removeAllRanges(); s.addRange(matches[cur]); savedRange = matches[cur].cloneRange(); }
+  updateStatus();
+}
+
+/* ---------- Volet de navigation ---------- */
+let navTimer = null;
+function debounceNav() { clearTimeout(navTimer); navTimer = setTimeout(() => { if (ui.nav) renderNav(); if ($('#search').value.trim()) runSearch(true); }, 500); }
+function toggleNav() { ui.nav = !ui.nav; saveUi(); applyUi(); if (ui.nav) renderNav(); }
+function setNavTab(t) { ui.navTab = t; saveUi(); $$('.navtabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.nt === t))); renderNav(); }
+function renderNav() {
+  const body = $('#navbody');
+  if (!ui.nav) return;
+  $$('.navtabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.nt === ui.navTab)));
+  const q = $('#search').value.trim();
+  if (ui.navTab === 'titres') {
+    const hs = $$('h1,h2,h3', doc).filter(h => !h.closest('.gb-toc') && h.textContent.trim());
+    body.innerHTML = hs.length
+      ? `<ul class="navlist">${hs.map((h, i) => `<li><button class="${h.tagName.toLowerCase()}" data-h="${i}">${esc(h.textContent.trim())}</button></li>`).join('')}</ul>`
+      : '<p class="muted">Aucun titre. Appliquez le style « Titre 1 » ou « Titre 2 » à vos titres pour les voir ici.</p>';
+    body.onclick = e => { const b = e.target.closest('[data-h]'); if (!b) return; const h = hs[+b.dataset.h]; const r = document.createRange(); r.selectNodeContents(h); r.collapse(true); savedRange = r; restoreSel(); const hr = h.getBoundingClientRect(), w = work.getBoundingClientRect(); work.scrollLeft += hr.left - w.left - 40; work.scrollTop += hr.top - w.top - 60; updateStatus(); };
+  } else if (ui.navTab === 'resultats') {
+    if (!q) { body.innerHTML = '<p class="muted">Tapez un mot dans la zone « Rechercher dans le document ».</p>'; body.onclick = null; return; }
+    body.innerHTML = `<p class="muted">${matches.length} résultat${matches.length > 1 ? 's' : ''} pour « ${esc(q)} »</p>` + matches.slice(0, 200).map((r, i) => {
+      const t = r.startContainer.data, s = r.startOffset, e2 = r.endOffset;
+      return `<button class="res" data-m="${i}">${esc(t.slice(Math.max(0, s - 40), s))}<mark>${esc(t.slice(s, e2))}</mark>${esc(t.slice(e2, e2 + 50))}</button>`;
+    }).join('');
+    body.onclick = e => { const b = e.target.closest('[data-m]'); if (b) gotoMatch(+b.dataset.m, true); };
+  } else {
+    const fq = fold(q);
+    const list = GLOSSARY.filter(g => !fq || [mo(g.k), g.mo, g.std || '', g.fr].some(x => fold(x).includes(fq)));
+    body.innerHTML = `<div class="seg ortho" role="group" aria-label="Orthographe"><button data-ortho="std" aria-pressed="${ORTHO === 'std'}">Orthographe standard</button><button data-ortho="ton" aria-pressed="${ORTHO === 'ton'}">Notation tonale</button></div><p class="muted">${list.length} terme${list.length > 1 ? 's' : ''} sur ${GLOSSARY.length}${q ? ` pour « ${esc(q)} »` : ''}</p>` + list.map((g, i) => `${i === 0 || list[i - 1].cat !== g.cat ? `<h4 class="glcat">${CATS[g.cat]}</h4>` : ''}
+      <div class="gl"><span class="mo">${mo(g.k) ? esc(mo(g.k)) : '<i class="muted" style="font-weight:400">à traduire</i>'}</span><span class="fr">${esc(g.fr)}${overrides[g.k] ? ' · modifié' : ''}${alt(g) ? `<br>${ORTHO === 'std' ? 'Notation tonale' : 'Orthographe standard'} : ${esc(alt(g))}` : ''}${g.variant ? `<br>Variante : ${esc(g.variant)}` : ''}${g.def ? `<br><span lang="mos">${esc(g.def)}</span>` : ''}${g.note ? `<br><i>${esc(noteText(g.note))}</i>` : ''}</span>
+      <span class="acts"><button class="tb" style="color:inherit"${mo(g.k) ? '' : ' hidden'} data-ins="${g.k}" aria-label="Insérer « ${esc(mo(g.k))} » dans le document" title="Insérer dans le document">${ico('insertIco')}</button><button class="tb" style="color:inherit" data-edit="${g.k}" aria-label="Modifier le terme ${esc(g.fr)}" title="Modifier le terme mooré">${ico('edit')}</button></span></div>`).join('') +
+      '<p class="muted" style="margin-top:12px">Les termes viennent des annexes du mémoire (lexique Word-Excel et lexique IA). Les libellés « à traduire » n’ont pas encore d’équivalent : cliquez sur le crayon pour saisir le terme mooré ou pour corriger un terme, toute l’interface suit.</p>';
+    body.onclick = e => {
+      const ins = e.target.closest('[data-ins]'), ed = e.target.closest('[data-edit]'), or = e.target.closest('[data-ortho]');
+      if (or) { ORTHO = or.dataset.ortho; store.set('gombiisi.ortho', ORTHO); relabel(); return; }
+      if (ins) exec('insertText', mo(ins.dataset.ins));
+      if (ed) editTermDialog(ed.dataset.edit);
+    };
+  }
+}
+
+/* ---------- Coulisses (onglet KÍBÁRÈ) ---------- */
+const fmtDate = t => new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(t));
+let bsSection = 'info';
+function openBackstage(section) {
+  closeMenu();
+  saveNow(false);
+  bsSection = section || 'info';
+  $('#backstage').hidden = false;
+  renderBackstage();
+}
+function closeBackstage() { $('#backstage').hidden = true; selectTab(ui.tab === 'file' ? 'home' : ui.tab); }
+function renderBackstage() {
+  const items = [
+    ['info', mo('info'), 'Informations du document'],
+    ['props', 'Propriétés', 'Propriétés du document'],
+    ['proof', mo('proofing'), 'Vérification et langue'],
+    ['protect', 'Protection', 'Protéger le document'],
+    '-',
+    ['manage', 'Gestion', 'Enregistrer, exporter, imprimer'],
+    ['about', 'Gom-biisi', 'À propos du logiciel'],
+  ];
+  $('#bsnav').innerHTML = `<button class="back" data-bs="back">← ${esc(mo('document') || 'Document')}</button>
+    <div class="brand"><b>KIBARE</b><small>kíbárè — ${esc(mo('m_file'))}</small></div>` +
+    items.map(it => it === '-' ? '<hr>' : `<button class="bsitem" data-bs="${it[0]}" aria-current="${it[0] === bsSection}"><b>${esc(it[1])}</b><small>${esc(it[2])}</small></button>`).join('');
+  const m = $('#bsmain');
+  const c = counts();
+  const quick = `<div class="card"><h3>Gestion rapide</h3><div class="quick">
+    <button data-run="save"><b>${esc(mo('save'))}</b><small>Enregistrer</small></button>
+    <button data-run="saveas"><b>${esc(mo('saveas'))}</b><small>Enregistrer sous</small></button>
+    <button data-run="print"><b>${esc(mo('print'))}</b><small>Imprimer</small></button>
+    <button data-run="export"><b>${esc(mo('export'))}</b><small>Exporter en HTML</small></button></div></div>`;
+  if (bsSection === 'info') {
+    const size = new Blob([serialize()]).size;
+    m.innerHTML = `<h2>${esc(mo('info'))}</h2><p class="sub">Informations sur « ${esc(current.title)} »</p>
+    <div class="card"><h3>${esc(mo('document'))} — Document</h3><dl class="kv">
+      <dt>Nom</dt><dd>${esc(current.title)}</dd>
+      <dt>Type</dt><dd>Document Gom-biisi (HTML / texte, UTF-8)</dd>
+      <dt>Taille</dt><dd>${nf.format(Math.max(0.1, Math.round(size / 102.4) / 10))} Ko</dd>
+      <dt>Pages</dt><dd>${nPages}</dd>
+      <dt>Mots</dt><dd>${nf.format(c.words)}</dd>
+      <dt>Caractères</dt><dd>${nf.format(c.chars)} (${nf.format(c.noSp)} sans espaces)</dd>
+      <dt>Paragraphes</dt><dd>${nf.format(c.paras)}</dd>
+      <dt>Objets insérés</dt><dd>${c.objects}</dd>
+      <dt>Langue</dt><dd>${S.lang === 'mos' ? 'Mooré (Burkina Faso)' : 'Français (France)'}</dd>
+      <dt>Création</dt><dd>${fmtDate(current.created)}</dd>
+      <dt>Dernière modification</dt><dd>${fmtDate(current.modified)}</dd>
+      <dt>État</dt><dd>${dirty ? 'Modifications non enregistrées' : 'Enregistré dans ce navigateur'}${readOnly ? ' · lecture seule' : ''}</dd>
+    </dl></div>${quick}`;
+  } else if (bsSection === 'props') {
+    m.innerHTML = `<h2>Propriétés</h2><p class="sub">Ces informations sont reprises dans les fichiers exportés.</p>
+    <form class="card" id="propsform">
+      <label class="field">Nom du document<input id="p-title" value="${esc(current.title)}" maxlength="120" required></label>
+      <label class="field">Auteur<input id="p-author" value="${esc(current.author || '')}" maxlength="120"></label>
+      <label class="field">Sujet<input id="p-subject" value="${esc(current.subject || '')}" maxlength="200"></label>
+      <label class="field">Mots-clés<input id="p-keywords" value="${esc(current.keywords || '')}" maxlength="200"></label>
+      <button class="btn primary" type="submit">Enregistrer les propriétés</button></form>`;
+    $('#propsform').onsubmit = e => {
+      e.preventDefault();
+      const t = $('#p-title').value.trim();
+      if (!t) { toast('Le nom du document est obligatoire.'); return; }
+      Object.assign(current, { title: t, author: $('#p-author').value.trim(), subject: $('#p-subject').value.trim(), keywords: $('#p-keywords').value.trim() });
+      $('#titletext').textContent = `${t} — Gom-biisi`; document.title = `${t} — Gom-biisi`;
+      saveNow(false); toast('Propriétés enregistrées.');
+    };
+  } else if (bsSection === 'proof') {
+    m.innerHTML = `<h2>${esc(mo('proofing'))}</h2><p class="sub">Vérification et langue</p>
+    <div class="card"><h3>Langue du document</h3>
+      <label class="switch"><input type="radio" name="lg" value="mos" ${S.lang === 'mos' ? 'checked' : ''}> Mooré (Burkina Faso)</label>
+      <label class="switch"><input type="radio" name="lg" value="fr" ${S.lang === 'fr' ? 'checked' : ''}> Français (France)</label></div>
+    <div class="card"><h3>Orthographe</h3>
+      <label class="switch"><input type="checkbox" id="bs-spell" ${S.spell ? 'checked' : ''}> Souligner les fautes d’orthographe</label>
+      <p class="muted">Les navigateurs ne proposent pas de dictionnaire mooré : laissez cette option désactivée pour un texte en mooré.</p></div>`;
+    $$('input[name=lg]', m).forEach(r => r.onchange = () => { S.lang = r.value; settingsChanged(); });
+    $('#bs-spell').onchange = e => { S.spell = e.target.checked; settingsChanged(); };
+  } else if (bsSection === 'protect') {
+    m.innerHTML = `<h2>Protection</h2><p class="sub">Protéger le document</p>
+    <div class="card"><h3>Lecture seule</h3><label class="switch"><input type="checkbox" id="bs-ro" ${readOnly ? 'checked' : ''}> Empêcher les modifications accidentelles</label>
+    <p class="muted">Le document reste lisible, imprimable et exportable.</p></div>`;
+    $('#bs-ro').onchange = e => setReadOnly(e.target.checked);
+  } else if (bsSection === 'manage') {
+    const list = Object.values(docs).sort((a, b) => b.modified - a.modified);
+    m.innerHTML = `<h2>Gestion</h2><p class="sub">Enregistrer, exporter, imprimer</p>
+    <div class="card"><h3>Fichier</h3><div class="quick">
+      <button data-run="newdoc"><b>Nouveau</b><small>Document vierge</small></button>
+      <button data-run="open"><b>Ouvrir</b><small>Fichier .html ou .txt</small></button>
+      <button data-run="save"><b>${esc(mo('save'))}</b><small>Enregistrer</small></button>
+      <button data-run="saveas"><b>${esc(mo('saveas'))}</b><small>Enregistrer sous (.html)</small></button>
+      <button data-run="export"><b>${esc(mo('export'))}</b><small>Exporter en HTML</small></button>
+      <button data-run="exportdoc"><b>Word</b><small>Exporter pour Word (.doc)</small></button>
+      <button data-run="print"><b>${esc(mo('print'))}</b><small>Imprimer</small></button></div></div>
+    <div class="card"><h3>Documents enregistrés dans ce navigateur</h3><ul class="doclist">${list.map(d => `
+      <li><span class="t"><b>${esc(d.title)}</b><small class="muted">Modifié le ${fmtDate(d.modified)}</small></span>
+      ${d.id === current.id ? '<span class="muted">Ouvert</span>' : `<button class="btn" data-opendoc="${d.id}">Ouvrir</button>`}
+      <button class="btn danger" data-deldoc="${d.id}">Supprimer</button></li>`).join('')}</ul></div>`;
+  } else {
+    m.innerHTML = `<h2>Gom-biisi</h2><p class="sub">À propos du logiciel</p>
+    <div class="card"><h3>Traitement de texte en mooré</h3>
+      <p>Gom-biisi est un traitement de texte léger dont l’interface est en mooré, la langue la plus parlée au Burkina Faso. Chaque bouton montre, au survol, son libellé mooré et son équivalent français.</p>
+      <p>Les documents sont enregistrés automatiquement dans ce navigateur. Pour les conserver ailleurs ou les envoyer, utilisez « ${esc(mo('saveas'))} » (fichier .html) ou l’export pour Word.</p>
+      <p class="muted">Terminologie : ${GLOSSARY.length} termes issus des annexes du mémoire (lexique Word-Excel et lexique IA) et de l’interface d’origine. Les termes se corrigent depuis le volet de navigation, onglet Glossaire.</p>
+      <p class="muted">Version 1.0 · un seul fichier, sans serveur, utilisable hors connexion.</p></div>`;
+  }
+  $$('[data-bs]').forEach(b => b.onclick = () => { if (b.dataset.bs === 'back') closeBackstage(); else { bsSection = b.dataset.bs; renderBackstage(); } });
+  $$('[data-run]', m).forEach(b => b.onclick = () => C[b.dataset.run].run(b));
+  $$('[data-opendoc]', m).forEach(b => b.onclick = () => { saveNow(false); loadDoc(docs[b.dataset.opendoc]); store.set('gombiisi.courant', current.id); closeBackstage(); toast('Document ouvert.'); });
+  $$('[data-deldoc]', m).forEach(b => b.onclick = () => {
+    const d = docs[b.dataset.deldoc];
+    confirmDialog('Supprimer ce document ?', `« ${d.title} » sera supprimé de ce navigateur. Cette action est définitive.`, 'Supprimer', () => {
+      delete docs[d.id];
+      if (d.id === current.id) {
+        const next = Object.values(docs).sort((a, b2) => b2.modified - a.modified)[0];
+        if (next) loadDoc(next); else { newDocument(true); return; }
+      }
+      store.set('gombiisi.docs', docs); renderBackstage(); toast('Document supprimé.');
+    });
+  });
+}
+
+/* ---------- Dialogues ---------- */
+function dialog(title, bodyHtml, actions, onOpen) {
+  closeMenu();
+  const sc = $('#scrim');
+  sc.innerHTML = `<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgt"><h2 id="dlgt">${esc(title)}</h2><div class="db">${bodyHtml}</div><div class="da">${actions.map((a, i) => `<button class="btn${a.primary ? ' primary' : ''}${a.danger ? ' danger' : ''}" data-a="${i}">${esc(a.label)}</button>`).join('')}</div></div>`;
+  sc.hidden = false;
+  const close = () => { sc.hidden = true; sc.innerHTML = ''; };
+  $$('[data-a]', sc).forEach(b => b.onclick = () => { const a = actions[+b.dataset.a]; if (!a.run || a.run() !== false) close(); });
+  sc.onmousedown = e => { if (e.target === sc) close(); };
+  const f = $('input,textarea,select', sc) || $('.btn.primary', sc);
+  if (f) setTimeout(() => f.focus(), 30);
+  if (onOpen) onOpen(sc, close);
+  return close;
+}
+function confirmDialog(title, text, okLabel, onOk) {
+  dialog(title, `<p>${esc(text)}</p>`, [{ label: 'Annuler' }, { label: okLabel, primary: true, run: onOk }]);
+}
+function renameDialog() {
+  dialog('Renommer le document', `<label class="field">Nom<input id="d-name" value="${esc(current.title)}" maxlength="120"></label>`, [
+    { label: 'Annuler' },
+    { label: 'Renommer', primary: true, run: () => { const v = $('#d-name').value.trim(); if (!v) { toast('Le nom ne peut pas être vide.'); return false; } current.title = v; $('#titletext').textContent = `${v} — Gom-biisi`; document.title = `${v} — Gom-biisi`; saveNow(false); } },
+  ]);
+}
+function textDialog(title, fieldLabel, onOk, opts = {}) {
+  saveSel();
+  dialog(title, `${opts.pre || ''}<label class="field">${esc(fieldLabel)}${opts.area ? `<textarea id="d-t" rows="4">${esc(opts.value || '')}</textarea>` : `<input id="d-t" value="${esc(opts.value || '')}">`}</label>${opts.post || ''}`, [
+    { label: 'Annuler' },
+    { label: opts.ok || 'Insérer', primary: true, run: () => { const v = $('#d-t').value.trim(); if (!v && !opts.allowEmpty) { toast('Ce champ est obligatoire.'); return false; } return onOk(v); } },
+  ]);
+}
+function commentDialog() {
+  if (!guard()) return;
+  saveSel();
+  if (!savedRange || savedRange.collapsed) { toast('Sélectionnez d’abord le texte à commenter.'); return; }
+  textDialog(`${mo('comment')} — Nouveau commentaire`, 'Commentaire', v => { exec('insertHTML', `<span class="gb-comment" data-comment="${esc(v)}" title="${esc(v)}">${selectionHtml()}</span>`); }, { area: true, ok: 'Ajouter' });
+}
+function removeComments() {
+  if (!guard()) return;
+  const cs = $$('.gb-comment', doc);
+  if (!cs.length) { toast('Ce document ne contient aucun commentaire.'); return; }
+  cs.forEach(c => c.replaceWith(...c.childNodes));
+  changed(); toast(`${cs.length} commentaire${cs.length > 1 ? 's' : ''} supprimé${cs.length > 1 ? 's' : ''}.`);
+}
+function footnoteDialog() {
+  if (!guard()) return;
+  textDialog(`${mo('footnote')} — Note de bas de page`, 'Texte de la note', v => {
+    const id = 'fn' + Date.now().toString(36);
+    exec('insertHTML', `<sup class="gb-fnref" data-fn="${id}">0</sup>`);
+    let box = $('.gb-footnotes', doc);
+    if (!box) { box = document.createElement('div'); box.className = 'gb-footnotes'; doc.appendChild(box); }
+    const p = document.createElement('p'); p.dataset.fn = id; p.innerHTML = `<sup>0</sup> ${esc(v)}`; box.appendChild(p);
+    renumberFootnotes(); changed();
+  }, { area: true });
+}
+function renumberFootnotes() {
+  const refs = $$('sup.gb-fnref', doc), box = $('.gb-footnotes', doc);
+  const order = {};
+  refs.forEach((r, i) => { order[r.dataset.fn] = i + 1; r.textContent = String(i + 1); });
+  if (!box) return;
+  const notes = $$('p[data-fn]', box).filter(p => { if (!order[p.dataset.fn]) { p.remove(); return false; } return true; });
+  notes.sort((a, b) => order[a.dataset.fn] - order[b.dataset.fn]).forEach(p => { p.querySelector('sup').textContent = order[p.dataset.fn]; box.appendChild(p); });
+  if (!box.children.length) box.remove();
+}
+function captionDialog() {
+  if (!guard()) return;
+  textDialog(`${mo('caption')} — Légende`, 'Texte de la légende', v => {
+    const type = $('#d-ct').value;
+    const n = $$('p.gb-caption', doc).filter(p => p.textContent.startsWith(type)).length + 1;
+    exec('insertHTML', `<p class="gb-caption">${type} ${n} : ${esc(v)}</p>`);
+  }, { pre: '<label class="field">Type<select id="d-ct"><option>Figure</option><option>Tableau</option><option>Carte</option><option>Photo</option></select></label>' });
+}
+function equationDialog() {
+  if (!guard()) return;
+  textDialog(`${mo('equation')} — Équation`, 'Équation (^ pour exposant, _ pour indice)', v => {
+    const h = esc(v).replace(/\^(\{([^}]*)\}|(\S))/g, (m, a, b, c) => `<sup>${b ?? c}</sup>`).replace(/_(\{([^}]*)\}|(\S))/g, (m, a, b, c) => `<sub>${b ?? c}</sub>`);
+    exec('insertHTML', `<span class="gb-eq">${h}</span>&nbsp;`);
+  }, { value: 'x^2 + y^2 = r^2' });
+}
+function linkDialog() {
+  if (!guard()) return;
+  saveSel();
+  const txt = savedRange ? savedRange.toString() : '';
+  dialog('Insérer un lien', `<label class="field">Texte à afficher<input id="d-lt" value="${esc(txt)}"></label><label class="field">Adresse<input id="d-lu" placeholder="https://" inputmode="url"></label>`, [
+    { label: 'Annuler' },
+    { label: 'Insérer', primary: true, run: () => {
+      let u = $('#d-lu').value.trim(); const t = $('#d-lt').value.trim() || u;
+      if (!u) { toast('Indiquez une adresse.'); return false; }
+      if (!/^(https?:|mailto:)/i.test(u)) u = 'https://' + u;
+      exec('insertHTML', `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(t)}</a>`);
+    } },
+  ]);
+}
+function tableDialog() {
+  if (!guard()) return;
+  saveSel();
+  dialog('Insérer un tableau', `<div class="tgrid" id="d-grid">${Array.from({ length: 64 }, (_, i) => `<span data-r="${Math.floor(i / 8) + 1}" data-c="${i % 8 + 1}"></span>`).join('')}</div>
+    <div style="display:flex;gap:10px"><label class="field">Lignes<input id="d-rows" type="number" min="1" max="100" value="3"></label><label class="field">Colonnes<input id="d-cols" type="number" min="1" max="20" value="3"></label></div>
+    <label class="switch"><input type="checkbox" id="d-head" checked> Première ligne en en-tête</label>`, [
+    { label: 'Annuler' },
+    { label: 'Insérer', primary: true, run: () => {
+      const r = Math.min(100, Math.max(1, +$('#d-rows').value || 1)), c = Math.min(20, Math.max(1, +$('#d-cols').value || 1)), head = $('#d-head').checked;
+      let h = '<table><tbody>';
+      for (let i = 0; i < r; i++) h += '<tr>' + Array.from({ length: c }, () => (head && i === 0 ? '<th><br></th>' : '<td><br></td>')).join('') + '</tr>';
+      exec('insertHTML', h + '</tbody></table><p><br></p>');
+    } },
+  ], sc => {
+    const g = $('#d-grid', sc);
+    const paint = (r, c) => { $$('span', g).forEach(s => s.classList.toggle('on', +s.dataset.r <= r && +s.dataset.c <= c)); $('#d-rows').value = r; $('#d-cols').value = c; };
+    g.onmouseover = e => { const s = e.target.closest('span'); if (s) paint(+s.dataset.r, +s.dataset.c); };
+    g.onclick = e => { const s = e.target.closest('span'); if (s) { paint(+s.dataset.r, +s.dataset.c); $('.btn.primary', sc).click(); } };
+    paint(3, 3);
+  });
+}
+function tableOp(op) {
+  if (!guard()) return;
+  const el = anchorEl();
+  const cell = el && el.closest('td,th');
+  if (!cell || !doc.contains(cell)) { toast('Placez d’abord le curseur dans un tableau.'); return; }
+  const row = cell.parentElement, table = cell.closest('table'), idx = [...row.children].indexOf(cell);
+  const blank = t => { const c = document.createElement(t); c.innerHTML = '<br>'; return c; };
+  if (op === 'rowabove' || op === 'rowbelow') {
+    const nr = document.createElement('tr');
+    [...row.children].forEach(() => nr.appendChild(blank('td')));
+    row.parentElement.insertBefore(nr, op === 'rowabove' ? row : row.nextSibling);
+  } else if (op === 'colleft' || op === 'colright') {
+    $$('tr', table).forEach(tr => { const ref = tr.children[idx]; const nc = blank(ref && ref.tagName === 'TH' ? 'th' : 'td'); tr.insertBefore(nc, op === 'colleft' ? ref : ref ? ref.nextSibling : null); });
+  } else if (op === 'delrow') {
+    if ($$('tr', table).length === 1) table.remove(); else row.remove();
+  } else if (op === 'delcol') {
+    if (row.children.length === 1) table.remove(); else $$('tr', table).forEach(tr => tr.children[idx] && tr.children[idx].remove());
+  } else if (op === 'deltable') table.remove();
+  changed();
+}
+const MOORE_CHARS = ['ɛ', 'Ɛ', 'ɩ', 'Ɩ', 'ʋ', 'Ʋ', 'ŋ', 'Ŋ', 'ã', 'ẽ', 'ɛ̃', 'ĩ', 'ɩ̃', 'õ', 'ũ', 'ʋ̃'];
+const TONES = ['á', 'à', 'â', 'é', 'è', 'ê', 'ɛ́', 'ɛ̀', 'í', 'ì', 'ɩ́', 'ɩ̀', 'ó', 'ò', 'ú', 'ù', 'ʋ́', 'ʋ̀'];
+const MARKS = [['́', 'Accent aigu (ton haut)'], ['̀', 'Accent grave (ton bas)'], ['̃', 'Tilde (nasale)'], ['̂', 'Circonflexe'], ['̌', 'Caron'], ['̰', 'Tilde souscrit']];
+const SIGNS = ['«', '»', '“', '”', '–', '—', '…', '•', '§', '¶', '©', '°', '±', '×', '÷', '≤', '≥', '≠', '≈', '€', '½', '¼', '←', '→', '✓'];
+function symbolDialog() {
+  if (!guard()) return;
+  saveSel();
+  const btns = arr => `<div class="chars">${arr.map(c => Array.isArray(c) ? `<button data-ch="${c[0]}" title="${esc(c[1])}">◌${c[0]}</button>` : `<button data-ch="${c}">${c}</button>`).join('')}</div>`;
+  dialog(`${mo('symbol')} — Symboles et lettres mooré`, `<p class="muted">Cliquez pour insérer. La fenêtre reste ouverte pour enchaîner.</p>
+    <h3 style="font-size:13px;margin:10px 0 6px">Lettres mooré</h3>${btns(MOORE_CHARS)}
+    <h3 style="font-size:13px;margin:14px 0 6px">Voyelles avec ton</h3>${btns(TONES)}
+    <h3 style="font-size:13px;margin:14px 0 6px">Signes à placer après une lettre</h3>${btns(MARKS)}
+    <h3 style="font-size:13px;margin:14px 0 6px">Ponctuation et symboles</h3>${btns(SIGNS)}`, [{ label: 'Fermer', primary: true }], sc => {
+    sc.querySelector('.db').addEventListener('mousedown', e => { if (e.target.closest('[data-ch]')) e.preventDefault(); });
+    sc.querySelector('.db').addEventListener('click', e => { const b = e.target.closest('[data-ch]'); if (b) { exec('insertText', b.dataset.ch); } });
+  });
+}
+function dateDialog() {
+  if (!guard()) return;
+  saveSel();
+  const d = new Date();
+  const f = [
+    new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(d),
+    new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(d),
+    new Intl.DateTimeFormat('fr-FR').format(d),
+    new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' }).format(d),
+    new Intl.DateTimeFormat('fr-FR', { timeStyle: 'short' }).format(d),
+  ];
+  dialog('Date et heure', `<div class="quick" style="grid-template-columns:1fr">${f.map(x => `<button data-dt="${esc(x)}"><b>${esc(x)}</b></button>`).join('')}</div>`, [{ label: 'Annuler' }], (sc, close) => {
+    $$('[data-dt]', sc).forEach(b => b.onclick = () => { close(); exec('insertText', b.dataset.dt); });
+  });
+}
+function replaceDialog() {
+  if (!guard()) return;
+  dialog('Rechercher et remplacer', `<label class="field">Rechercher<input id="d-f" value="${esc($('#search').value)}"></label><label class="field">Remplacer par<input id="d-r"></label><label class="switch"><input type="checkbox" id="d-case"> Respecter la casse</label>`, [
+    { label: 'Fermer' },
+    { label: 'Tout remplacer', primary: true, run: () => {
+      const f = $('#d-f').value, r = $('#d-r').value;
+      if (!f) { toast('Indiquez le texte à rechercher.'); return false; }
+      const re = new RegExp(f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $('#d-case').checked ? 'g' : 'gi');
+      let n = 0;
+      const tw = document.createTreeWalker(doc, NodeFilter.SHOW_TEXT); let t;
+      const nodes = []; while ((t = tw.nextNode())) nodes.push(t);
+      nodes.forEach(x => { const m = x.data.match(re); if (m) { n += m.length; x.data = x.data.replace(re, () => r); } });
+      changed(); runSearch();
+      toast(n ? `${n} remplacement${n > 1 ? 's' : ''} effectué${n > 1 ? 's' : ''}.` : 'Aucune occurrence trouvée.');
+    } },
+  ]);
+}
+function statsDialog() {
+  const c = counts();
+  dialog('Statistiques', `<dl class="kv" style="grid-template-columns:1fr auto">
+    <dt>Pages</dt><dd>${nPages}</dd><dt>Mots</dt><dd>${nf.format(c.words)}</dd>
+    <dt>Caractères (espaces compris)</dt><dd>${nf.format(c.chars)}</dd><dt>Caractères (sans espaces)</dt><dd>${nf.format(c.noSp)}</dd>
+    <dt>Paragraphes</dt><dd>${nf.format(c.paras)}</dd><dt>Images et tableaux</dt><dd>${c.objects}</dd></dl>`, [{ label: 'Fermer', primary: true }]);
+}
+function languageDialog() {
+  dialog(`${mo('proofing')} — Langue`, `<label class="switch"><input type="radio" name="dl" value="mos" ${S.lang === 'mos' ? 'checked' : ''}> Mooré (Burkina Faso)</label><label class="switch"><input type="radio" name="dl" value="fr" ${S.lang === 'fr' ? 'checked' : ''}> Français (France)</label>`, [
+    { label: 'Annuler' }, { label: 'Appliquer', primary: true, run: () => { const v = $('input[name=dl]:checked').value; S.lang = v; settingsChanged(); } },
+  ]);
+}
+function editTermDialog(k) {
+  const g = GL[k];
+  dialog('Modifier un terme mooré', `<p>Équivalent français : <b>${esc(g.fr)}</b></p><label class="field">Terme mooré<input id="d-mo" value="${esc(mo(k))}" lang="mos"></label><p class="muted">Terme d’origine : ${base(g) ? esc(base(g)) : 'aucun (libellé absent du lexique)'}${alt(g) ? ` (autre graphie : ${esc(alt(g))})` : ''}</p>${g.def ? `<p class="muted" lang="mos">${esc(g.def)}</p>` : ''}${g.note ? `<p class="muted">${esc(noteText(g.note))}</p>` : ''}`, [
+    { label: 'Rétablir l’original', run: () => { delete overrides[k]; store.set('gombiisi.glossaire', overrides); relabel(); toast('Terme d’origine rétabli.'); } },
+    { label: 'Annuler' },
+    { label: 'Enregistrer', primary: true, run: () => { const v = $('#d-mo').value.trim(); if (!v) { toast('Le terme ne peut pas être vide.'); return false; } if (v === base(g)) delete overrides[k]; else overrides[k] = v; store.set('gombiisi.glossaire', overrides); relabel(); toast('Terme enregistré. L’interface est à jour.'); } },
+  ]);
+}
+function shortcutsDialog() {
+  const k = isMac() ? '⌘' : 'Ctrl';
+  const list = [['Enregistrer', `${k}+S`], ['Imprimer', `${k}+P`], ['Rechercher', `${k}+F`], ['Remplacer', `${k}+H`], ['Gras / Italique / Souligné', `${k}+B / I / U`], ['Annuler / Rétablir', `${k}+Z / ${k}+Y`], ['Saut de page', `${k}+Entrée`], ['Lien', `${k}+K`], ['Zoom', `${k}+molette`], ['Fermer un menu ou une fenêtre', 'Échap']];
+  dialog('Raccourcis clavier', `<dl class="kv" style="grid-template-columns:1fr auto">${list.map(([a, b]) => `<dt>${a}</dt><dd><b>${b}</b></dd>`).join('')}</dl>`, [{ label: 'Fermer', primary: true }]);
+}
+function shareDialog() {
+  dialog('Partager le document', `<p>Choisissez comment transmettre « ${esc(current.title)} ».</p><div class="quick" style="grid-template-columns:1fr">
+    <button data-sh="text"><b>Copier le texte</b><small>Pour le coller dans un message ou un courriel</small></button>
+    <button data-sh="file"><b>${esc(mo('saveas'))}</b><small>Enregistrer une copie .html à envoyer</small></button>
+    <button data-sh="word"><b>Exporter pour Word</b><small>Fichier .doc lisible par Word et LibreOffice</small></button></div>`, [{ label: 'Fermer' }], (sc, close) => {
+    $$('[data-sh]', sc).forEach(b => b.onclick = async () => {
+      if (b.dataset.sh === 'text') {
+        try { await navigator.clipboard.writeText(doc.innerText); close(); toast('Texte copié dans le presse-papiers.'); }
+        catch (e) { close(); restoreSel(); exec('selectAll'); toast(`Le texte est sélectionné : utilisez ${isMac() ? '⌘' : 'Ctrl'}+C pour le copier.`); }
+      } else { close(); b.dataset.sh === 'file' ? saveAs() : exportWord(); }
+    });
+  });
+}
+
+/* ---------- Table des matières ---------- */
+function tocHtml() {
+  const hs = $$('h1,h2,h3', doc).filter(h => !h.closest('.gb-toc') && h.textContent.trim());
+  const entries = hs.map(h => `<div class="e l${h.tagName[1]}"><span>${esc(h.textContent.trim())}</span><span class="d"></span><span>${pageOfRect(h.getBoundingClientRect())}</span></div>`).join('');
+  return `<div class="t">Table des matières</div>${entries || '<div class="e"><span>Aucun titre : appliquez les styles « Titre 1 » ou « Titre 2 ».</span></div>'}`;
+}
+function insertToc() {
+  if (!guard()) return;
+  exec('insertHTML', `<div class="gb-toc" contenteditable="false">${tocHtml()}</div><p><br></p>`);
+  requestAnimationFrame(() => updateToc(false));
+}
+function updateToc(manual) {
+  const ts = $$('.gb-toc', doc);
+  if (!ts.length) { if (manual) toast('Ce document ne contient pas de table des matières.'); return; }
+  layout();
+  ts.forEach(t => { t.innerHTML = tocHtml(); });
+  changed();
+  if (manual) toast('Table des matières mise à jour.');
+}
+
+/* ---------- Images ---------- */
+function insertImageFile(file) {
+  if (!guard()) return;
+  if (!/^image\/(png|jpeg|gif|webp)$/.test(file.type)) { toast('Format non pris en charge. Utilisez une image PNG, JPEG, GIF ou WebP.'); return; }
+  if (file.size > 5 * 1024 * 1024) { toast('Image trop lourde (5 Mo maximum).'); return; }
+  const fr = new FileReader();
+  fr.onload = () => exec('insertHTML', `<img src="${fr.result}" alt="${esc(file.name.replace(/\.[^.]+$/, ''))}" style="width:60%">`);
+  fr.onerror = () => toast('Lecture de l’image impossible.');
+  fr.readAsDataURL(file);
+}
+function showImgBar(img) {
+  $$('.gb-selimg', doc).forEach(i => i.classList.remove('gb-selimg'));
+  selImg = img;
+  const bar = $('#imgbar');
+  if (!img) { bar.hidden = true; return; }
+  img.classList.add('gb-selimg');
+  bar.innerHTML = ['25', '50', '75', '100'].map(w => `<button class="rb" data-w="${w}">${w} %</button>`).join('') +
+    `<button class="rb" data-al="left" aria-label="Aligner à gauche">${ico('al')}</button><button class="rb" data-al="center" aria-label="Centrer">${ico('ac')}</button><button class="rb" data-al="right" aria-label="Aligner à droite">${ico('ar')}</button><button class="rb" data-del="1" aria-label="Supprimer l’image">${ico('trash')}</button>`;
+  bar.hidden = false;
+  const r = img.getBoundingClientRect(), w = work.getBoundingClientRect();
+  bar.style.left = Math.max(4, r.left - w.left + work.scrollLeft) + 'px';
+  bar.style.top = Math.max(4, r.top - w.top + work.scrollTop - 44) + 'px';
+}
+$('#imgbar').addEventListener('mousedown', e => e.preventDefault());
+$('#imgbar').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || !selImg || !guard()) return;
+  if (b.dataset.w) selImg.style.width = b.dataset.w + '%';
+  if (b.dataset.al) { selImg.style.display = 'block'; selImg.style.margin = b.dataset.al === 'center' ? '0 auto' : b.dataset.al === 'right' ? '0 0 0 auto' : '0'; }
+  if (b.dataset.del) { selImg.remove(); showImgBar(null); }
+  changed();
+  if (selImg) requestAnimationFrame(() => showImgBar(selImg));
+});
+
+/* ---------- Fichiers : export, ouverture, impression ---------- */
+const EXPORT_CSS = `body{font:12pt/1.5 'Times New Roman',Tinos,serif;color:#111;max-width:16cm;margin:2.5cm auto;padding:0 1cm}
+h1{font-size:14pt;text-align:center;text-transform:uppercase}h1.gb-title{font-size:24pt;text-transform:none;text-align:left;font-weight:400}
+h2{font-size:13pt;color:#1f3864}h3{font-size:12pt;font-style:italic}p{margin:0 0 8pt}blockquote{margin:6pt 1cm;font-style:italic}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #777;padding:3pt 6pt;vertical-align:top}img{max-width:100%;height:auto}
+hr.gb-saut{border:0;break-after:page;page-break-after:always}.gb-caption{font-size:10pt;font-style:italic;text-align:center}
+.gb-textbox{border:1px solid #6b7c93;padding:6pt 8pt}.gb-footnotes{border-top:1px solid #999;font-size:10pt;margin-top:14pt}
+.gb-toc .e{display:flex;gap:6px}.gb-toc .e .d{flex:1;border-bottom:1px dotted #888}.gb-toc .t{font-weight:700}
+.gb-comment{background:#fff2b3}@page{size:A4;margin:2.5cm}`;
+function fileBase() { return (current.title || 'document').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 80) || 'document'; }
+function exportMarkup() {
+  return `<!doctype html>
+<html lang="${S.lang === 'mos' ? 'mos' : 'fr'}">
+<head>
+<meta charset="utf-8">
+<meta name="generator" content="Gom-biisi">
+<meta name="author" content="${esc(current.author || '')}">
+<meta name="description" content="${esc(current.subject || '')}">
+<meta name="keywords" content="${esc(current.keywords || '')}">
+<title>${esc(current.title)}</title>
+<style>${EXPORT_CSS}body{font-family:'${S.font}',serif;background:${S.pageColor}}</style>
+</head>
+<body>
+<main id="gb-content">${serialize().replace(/ contenteditable="false"/g, '')}</main>
+</body>
+</html>`;
+}
+async function download(name, content, mime) {
+  if (IN_FRAME && window.claude && typeof window.claude.use === 'function') {
+    try {
+      const dl = await window.claude.use('downloads');
+      if (dl) { await dl.save({ filename: name, data: content }); toast(`Fichier « ${name} » enregistré.`); return; }
+    } catch (e) { if (e && e.code === 'declined') return; }
+  }
+  try {
+    const url = URL.createObjectURL(new Blob([content], { type: mime }));
+    const a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  } catch (e) { /* voir ci-dessous */ }
+  if (IN_FRAME) {
+    dialog('Copie du fichier', `<p>Si le téléchargement n’a pas démarré (aperçu en ligne), copiez le contenu ci-dessous et collez-le dans un fichier nommé <b>${esc(name)}</b>. Dans le fichier gom-biisi.html ouvert directement dans votre navigateur, le téléchargement fonctionne normalement.</p><textarea class="code" id="d-code" readonly>${esc(content)}</textarea>`, [
+      { label: 'Fermer' },
+      { label: 'Copier', primary: true, run: () => { const t = $('#d-code'); navigator.clipboard.writeText(t.value).then(() => toast('Contenu copié.'), () => { t.select(); toast(`Utilisez ${isMac() ? '⌘' : 'Ctrl'}+C pour copier.`); }); return false; } },
+    ]);
+  } else toast(`Fichier « ${name} » enregistré dans vos téléchargements.`);
+}
+function exportHtml() { saveNow(false); download(fileBase() + '.html', exportMarkup(), 'text/html;charset=utf-8'); }
+function saveAs() { exportHtml(); }
+function exportWord() {
+  saveNow(false);
+  const body = serialize().replace(/<hr class="gb-saut">/g, `<br clear="all" style="page-break-before:always">`).replace(/ contenteditable="false"/g, '');
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>${esc(current.title)}</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
+<style>@page WordSection1{size:21cm 29.7cm;margin:${S.margin}cm}div.WordSection1{page:WordSection1}${EXPORT_CSS.replace(/max-width:16cm;margin:2.5cm auto;padding:0 1cm/, '')}body{font-family:'${S.font}',serif}</style></head>
+<body><div class="WordSection1">${body}</div></body></html>`;
+  download(fileBase() + '.doc', '﻿' + html, 'application/msword');
+}
+function printDoc() {
+  if (IN_FRAME) {
+    dialog('Imprimer', `<p>L’impression n’est pas possible dans cet aperçu en ligne.</p><p>Ouvrez le fichier <b>gom-biisi.html</b> directement dans votre navigateur, puis utilisez « ${esc(mo('print'))} » : la mise en page A4 est prête.</p>`, [{ label: 'Compris', primary: true }]);
+    return;
+  }
+  saveNow(false);
+  window.print();
+}
+$('#f-open').addEventListener('change', e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  if (f.size > 15 * 1024 * 1024) { toast('Fichier trop lourd (15 Mo maximum).'); return; }
+  const r = new FileReader();
+  r.onload = () => {
+    let html = '', title = f.name.replace(/\.[^.]+$/, '');
+    if (/\.txt$/i.test(f.name) || f.type === 'text/plain') {
+      html = String(r.result).split(/\r?\n\r?\n/).map(p => `<p>${esc(p).replace(/\r?\n/g, '<br>')}</p>`).join('');
+    } else {
+      const d = new DOMParser().parseFromString(String(r.result), 'text/html');
+      const main = d.querySelector('#gb-content') || d.querySelector('.WordSection1') || d.body;
+      html = main ? main.innerHTML : '';
+      const t = d.querySelector('title'); if (t && t.textContent.trim()) title = t.textContent.trim();
+    }
+    saveNow(false);
+    const nd = { id: uid(), title, author: '', subject: '', keywords: '', html: sanitize(html) || '<p><br></p>', created: Date.now(), modified: Date.now(), settings: { ...DEFAULT_SETTINGS } };
+    docs[nd.id] = nd; loadDoc(nd); saveNow(false); closeBackstage();
+    toast(`« ${title} » ouvert.`);
+  };
+  r.onerror = () => toast('Lecture du fichier impossible.');
+  r.readAsText(f, 'utf-8');
+});
+$('#f-image').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) insertImageFile(f); });
+
+/* ---------- Divers ---------- */
+function setReadOnly(v) {
+  readOnly = v;
+  doc.contentEditable = v ? 'false' : 'true';
+  doc.classList.toggle('ro', v);
+  $('#q-ro').innerHTML = ico(v ? 'lock' : 'pen');
+  toast(v ? 'Lecture seule activée : le document est protégé.' : 'Lecture seule désactivée : vous pouvez modifier le document.');
+  refreshState();
+  if (!$('#backstage').hidden) renderBackstage();
+}
+function toggleMarks() { ui.marks = !ui.marks; saveUi(); applyUi(); }
+function setTheme(v) { ui.theme = v; saveUi(); applyUi(); drawRuler(); }
+function fullscreen() {
+  const el = document.documentElement;
+  const p = document.fullscreenElement ? document.exitFullscreen() : (el.requestFullscreen ? el.requestFullscreen() : Promise.reject());
+  Promise.resolve(p).catch(() => toast('Le plein écran n’est pas disponible ici. Essayez la touche F11.'));
+}
+function applyUi() {
+  $('#nav').hidden = !ui.nav;
+  $('#q-nav').setAttribute('aria-pressed', String(ui.nav));
+  $('#ribbon').classList.toggle('collapsed', !ui.ribbon);
+  const rt = $('#ribbontoggle'); if (rt) rt.innerHTML = ico('up').replace('m18 15-6-6-6 6', ui.ribbon ? 'm18 15-6-6-6 6' : 'm6 9 6 6 6-6');
+  doc.classList.toggle('show-marks', ui.marks);
+  if (ui.theme === 'system') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', ui.theme);
+  drawRuler();
+  refreshState();
+}
+let toastTimer = null;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3400);
+}
+function insertPageBreak() { exec('insertHTML', '<hr class="gb-saut"><p><br></p>'); }
+function staticLabels() {
+  $('#nav header span').textContent = mo(C.navpane.k) || C.navpane.fr;
+  [['titres', 'Titres'], ['resultats', 'Résultats'], ['glossaire', 'Glossaire']].forEach(([id, fr]) => { const b = $(`[data-nt="${id}"]`); b.textContent = t('ui_' + id, fr); b.title = fr; });
+  $('#search').placeholder = t('ui_rechercher', 'Rechercher dans le document');
+  $('#sharebtn [data-k]').textContent = mo('share') || 'Partager';
+}
+function relabel() {
+  staticLabels(); updateStatus();
+  const wasBs = !$('#backstage').hidden;
+  buildMenubar(); buildRibbon(); buildTabs(); tick();
+  $$('[data-k]').forEach(el => { el.textContent = mo(el.dataset.k) || el.textContent; });
+  drawSheets(); renderNav(); refreshState();
+  if (wasBs) { $('#backstage').hidden = false; renderBackstage(); }
+}
+function tick() {
+  const d = new Date();
+  const c = $('#clock'); if (!c) return;
+  c.textContent = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }).format(d) + ' ' + new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(d);
+}
+
+/* ---------- Événements ---------- */
+document.addEventListener('mousedown', e => {
+  if (e.target.closest('.rb,.tb,.sty,.mb,#tabs .tab,.navlist button,.res')) { saveSel(); if (!e.target.closest('input,select')) e.preventDefault(); }
+  if (openMenuEl && !openMenuEl.contains(e.target) && !e.target.closest('[data-menu]')) closeMenu();
+});
+document.addEventListener('click', e => {
+  const act = e.target.closest('[data-act]');
+  if (act && C[act.dataset.act]) { C[act.dataset.act].run(act); return; }
+  const st = e.target.closest('[data-style]');
+  if (st) { applyStyle(st.dataset.style); return; }
+  const tab = e.target.closest('[data-tabid]');
+  if (tab) { selectTab(tab.dataset.tabid); return; }
+  const mb = e.target.closest('[data-menu]');
+  if (mb) { const m = MENUS[+mb.dataset.menu]; openMenu(mb, menuItemsFor(m.items)); return; }
+  if (e.target.closest('#ribbontoggle')) { ui.ribbon = !ui.ribbon; saveUi(); applyUi(); return; }
+  const nt = e.target.closest('[data-nt]');
+  if (nt) { setNavTab(nt.dataset.nt); return; }
+});
+$('#menubar').addEventListener('mouseover', e => {
+  const mb = e.target.closest('[data-menu]');
+  if (mb && openMenuEl && openMenuAnchor && openMenuAnchor !== mb && openMenuAnchor.closest('#menubar')) openMenu(mb, menuItemsFor(MENUS[+mb.dataset.menu].items));
+});
+const QUICK = { 'q-nav': ['navpane', 'sidebar'], 'q-save': ['save', 'save'], 'q-undo': ['undo', 'undo'], 'q-redo': ['redo', 'redo'], 'q-print': ['print', 'print'], 'q-ro': ['readonly', 'pen'], 'sharebtn': ['share', null], 'titlebtn': ['rename', null], 'st-one': ['onepage', 'one'], 'st-two': ['twopages', 'two'], 'st-lang': ['language', null], 'navclose': ['navpane', 'x'] };
+Object.entries(QUICK).forEach(([id, [act, icon]]) => { const el = $('#' + id); el.dataset.act = act; el.dataset.tip = act; if (icon) el.innerHTML = ico(icon); });
+$('#searchico').innerHTML = ico('search');
+$('#shareico').innerHTML = ico('share');
+$('#st-langico').innerHTML = ico('proof');
+$('#st-zout').onclick = () => { ui.fit = null; setZoom(zoom - 10); };
+$('#st-zin').onclick = () => { ui.fit = null; setZoom(zoom + 10); };
+$('#st-zval').onclick = () => { ui.fit = null; setZoom(100); };
+$('#zoomrange').oninput = e => { ui.fit = null; setZoom(+e.target.value); };
+
+$('#ribbon').addEventListener('change', e => {
+  if (e.target.id === 'fontname') { exec('styleWithCSS', true); exec('fontName', e.target.value); }
+  if (e.target.id === 'fontsize') { const v = parseFloat(String(e.target.value).replace(',', '.')); if (v > 0) setFontSize(v); else toast('Indiquez une taille valide, par exemple 12.'); }
+});
+$('#ribbon').addEventListener('keydown', e => { if (e.target.id === 'fontsize' && e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+
+doc.addEventListener('input', () => { changed(); ensureCaretVisible(); });
+doc.addEventListener('keyup', () => { requestAnimationFrame(() => { ensureCaretVisible(); updateStatus(); }); });
+doc.addEventListener('load', scheduleLayout, true);
+doc.addEventListener('mouseup', () => { saveSel(); if (painter && savedRange && !savedRange.collapsed) applyPainter(); });
+doc.addEventListener('click', e => {
+  const img = e.target.closest('img');
+  showImgBar(img && doc.contains(img) ? img : null);
+  const toc = e.target.closest('.gb-toc');
+  if (toc && !readOnly) openMenu(toc, [{ fr: 'Mettre à jour la table des matières', run: () => updateToc(true) }, { fr: 'Supprimer la table des matières', run: () => { toc.remove(); changed(); } }]);
+});
+doc.addEventListener('paste', e => {
+  const cd = e.clipboardData;
+  if (!cd || readOnly) return;
+  e.preventDefault();
+  const txt = cd.getData('text/plain');
+  try {
+    const img = [...(cd.files || [])].find(f => f.type.startsWith('image/'));
+    const html = cd.getData('text/html');
+    if (img && !html) { insertImageFile(img); return; }
+    if (html) { const clean = sanitize(html); if (clean.replace(/<[^>]*>/g, '').trim() || /<img/i.test(clean)) { document.execCommand('insertHTML', false, clean); changed(); return; } }
+    if (txt) { document.execCommand('insertText', false, txt); changed(); }
+  } catch (err) {
+    // Le collage ne doit jamais casser l'éditeur : on retombe sur le texte brut.
+    try { if (txt) document.execCommand('insertText', false, txt); changed(); toast('Collé en texte simple : la mise en forme n’a pas pu être conservée.'); }
+    catch (e2) { toast('Ce contenu ne peut pas être collé. Le document n’a pas été modifié.'); }
+  }
+});
+doc.addEventListener('drop', e => {
+  const f = e.dataTransfer && [...e.dataTransfer.files].find(x => x.type.startsWith('image/'));
+  if (f) { e.preventDefault(); const r = document.caretRangeFromPoint ? document.caretRangeFromPoint(e.clientX, e.clientY) : null; if (r) savedRange = r; insertImageFile(f); }
+});
+doc.addEventListener('keydown', e => {
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key === 'Enter') { e.preventDefault(); insertPageBreak(); }
+  else if (e.key === 'Tab' && !readOnly) {
+    e.preventDefault(); saveSel();
+    const el = anchorEl();
+    if (el && el.closest('li')) exec(e.shiftKey ? 'outdent' : 'indent');
+    else if (el && el.closest('td,th')) {
+      const cell = el.closest('td,th'); const cells = $$('td,th', cell.closest('table')); const next = cells[cells.indexOf(cell) + (e.shiftKey ? -1 : 1)];
+      if (next) { const r = document.createRange(); r.selectNodeContents(next); r.collapse(true); savedRange = r; restoreSel(); }
+    } else if (!e.shiftKey) exec('insertText', '    ');
+  }
+});
+document.addEventListener('keydown', e => {
+  const mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
+  if (e.key === 'Escape') { if (openMenuEl) closeMenu(); else if (!$('#scrim').hidden) { $('#scrim').hidden = true; $('#scrim').innerHTML = ''; } else if (!$('#backstage').hidden) closeBackstage(); return; }
+  if (!mod) return;
+  if (k === 's') { e.preventDefault(); saveNow(true); }
+  else if (k === 'p') { e.preventDefault(); printDoc(); }
+  else if (k === 'f') { e.preventDefault(); C.find.run(); }
+  else if (k === 'h') { e.preventDefault(); replaceDialog(); }
+  else if (k === 'k' && inDoc(document.activeElement)) { e.preventDefault(); linkDialog(); }
+  else if (inDoc(document.activeElement) && ['l', 'e', 'r', 'j'].includes(k) && !e.shiftKey) { e.preventDefault(); saveSel(); C[{ l: 'jl', e: 'jc', r: 'jr', j: 'jf' }[k]].run(); }
+});
+document.addEventListener('selectionchange', () => {
+  const s = getSelection();
+  if (s.rangeCount && inDoc(s.anchorNode)) { saveSel(); requestAnimationFrame(() => { refreshState(); updateStatus(); }); }
+});
+$('#search').addEventListener('input', () => { runSearch(); if (matches.length) gotoMatch(0, false); if (ui.nav && ui.navTab === 'titres' && $('#search').value.trim()) setNavTab('resultats'); });
+$('#search').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); gotoMatch(cur + (e.shiftKey ? -1 : 1), true); } });
+$('#s-prev').onclick = () => gotoMatch(cur - 1, true);
+$('#s-next').onclick = () => gotoMatch(cur + 1, true);
+work.addEventListener('wheel', e => {
+  if (e.ctrlKey || e.metaKey) { e.preventDefault(); ui.fit = null; setZoom(zoom + (e.deltaY < 0 ? 10 : -10)); return; }
+  const canV = work.scrollHeight > work.clientHeight + 2;
+  if (!canV && Math.abs(e.deltaY) > Math.abs(e.deltaX) && work.scrollWidth > work.clientWidth + 2) { e.preventDefault(); work.scrollLeft += e.deltaY; }
+}, { passive: false });
+work.addEventListener('scroll', () => { if (selImg) showImgBar(selImg); });
+window.addEventListener('resize', () => { if (ui.fit) fitZoom(ui.fit); closeMenu(); });
+window.addEventListener('beforeunload', () => { if (dirty) saveNow(false); });
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawRuler);
+
+/* ---------- Démarrage ---------- */
+const SAMPLE = `<h1>Introduction</h1>
+<p style="text-align:justify;text-indent:1cm">L’extinction des langues est un phénomène mondial. Selon les études menées par l’UNESCO en 2003, une langue s’éteint tous les 14 jours. Dans le contexte des langues africaines, on constate que leur vitalité diminue au fil des années et cela est due à la mondialisation, l’urbanisation, la scolarisation dans les langues dominantes telles que le français, l’anglais, l’espagnol et les politiques linguistiques nationales. Ces phénomènes contribuent malheureusement à accélérer la disparition de nombreuses langues qui entraînent avec elles non seulement la perte du patrimoine linguistique mais aussi la perte des savoirs culturels en général. De fait, il est évident que lorsqu’une langue meurt, elle ne meurt pas seule, elle entraîne avec elle toute l’histoire qui se rattache au peuple qui la pratique. Selon la théorie de la relativité linguistique de Sapir-Whorf (1929), la langue est le découpage de la vision du monde que se fait chaque peuple du monde. En effet la langue est la dimension la plus visible, la plus parlante de la culture. Le développement d’une société est tributaire de la langue car elle permet la transmission de savoirs techniques et technologiques. Malheureusement en Afrique, ces savoirs sont généralement transmis dans d’autres langues, en l’occurrence les langues indo-européennes et le mooré ne reste pas en marge de cette déperdition. Conscient de ce fait, le Burkina Faso, dans sa nouvelle politique éducative a pris la résolution d’accorder du crédit aux langues locales, avec l’introduction de différents projets de loi au début des années 2000.</p>
+<p style="text-align:justify;text-indent:1cm">En outre, peu de travaux de description linguistique ont porté sur la terminologie dans les domaines technologiques en mooré, ce qui rend parfois la tâche difficile aux locuteurs quant à l’expression de certains besoins communicationnels. Cela a pour conséquence de retarder la transmission des savoirs scientifiques dans les sphères éducatives. Parlant du domaine de la santé, Hien Amélie dira : « De plus en plus de travaux s’effectuent en terminologie des langues africaines mais, à notre connaissance, très peu d’entre eux ont proposé une méthode et aucun ne décrit, dans le domaine de la santé. »</p>
+<h2>Quelques termes de l’interface en mooré</h2>
+<ul><li><b>sɩ̃ŋrè</b> : Accueil</li><li><b>paasgo</b> : Insertion</li><li><b>dʋgélè</b> : Coller</li><li><b>nɩ̃ŋè</b> : Enregistrer</li><li><b>jíís sébra zúgù</b> : Imprimer</li></ul>
+<p>Survolez un bouton du ruban pour voir son nom en mooré et son équivalent français. Ce texte d’exemple peut être effacé librement.</p>`;
+
+function boot() {
+  buildMenubar(); buildRibbon(); buildTabs(); staticLabels(); tick();
+  setInterval(tick, 20000);
+  document.execCommand('styleWithCSS', false, true);
+  document.execCommand('defaultParagraphSeparator', false, 'p');
+  const curId = store.get('gombiisi.courant', null);
+  let d = curId && docs[curId];
+  if (!d) {
+    const list = Object.values(docs).sort((a, b) => b.modified - a.modified);
+    d = list[0];
+  }
+  if (!d) {
+    d = { id: uid(), title: 'Kíbárè kʋdʋ', author: '', subject: '', keywords: '', html: SAMPLE, created: Date.now(), modified: Date.now(), settings: { ...DEFAULT_SETTINGS } };
+    docs[d.id] = d;
+  }
+  applyUi();
+  loadDoc(d);
+  saveNow(false);
+  const small = innerWidth < 760;
+  if (ui.zoom && !small && !ui.fit) setZoom(ui.zoom);
+  else fitZoom(small ? 'width' : (ui.fit || ((work.clientWidth - 60) / (2 * geom().pw + GAP) >= 0.55 ? 'two' : 'width')));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { layout(); });
+}
+boot();
+})();
+</script>
+</body>
+</html>
